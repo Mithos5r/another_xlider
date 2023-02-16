@@ -23,7 +23,7 @@ class XliderTrackBar {
     BoxDecoration? activeTrackBar,
   }) {
     return XliderTrackBar(
-      thickness: height ?? this.thickness,
+      thickness: height ?? thickness,
       color: color ?? this.color,
       decoration: activeTrackBar ?? decoration,
     );

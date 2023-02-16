@@ -7,6 +7,7 @@ import 'package:another_xlider/models/hatch_mark_helper_modal.dart';
 import 'package:another_xlider/widgets/active_track.dart';
 import 'package:another_xlider/widgets/inactive_track.dart';
 import 'package:another_xlider/widgets/tooltip.dart';
+import 'package:another_xlider/xlider_drag_function.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show Colors, Icons;
 import 'package:flutter/widgets.dart';
@@ -59,11 +60,16 @@ class Xlider extends StatefulWidget {
   ///lock, set height and width, and set all the params correctly of the handler
   final XliderHandlerConfiguration xliderHandlerConfiguration;
 
-  final Function(int handlerIndex, dynamic lowerValue, dynamic upperValue)?
+  ///Callback when drag started
+  final Function(XliderSide handlerIndex, double lowerValue, double upperValue)?
       onDragStarted;
-  final Function(int handlerIndex, dynamic lowerValue, dynamic upperValue)?
+
+  ///Callback when user drop handler focus
+  final Function(XliderSide handlerIndex, double lowerValue, double upperValue)?
       onDragCompleted;
-  final Function(int handlerIndex, dynamic lowerValue, dynamic upperValue)?
+
+  ///Callback action when user is dragging
+  final Function(XliderSide handlerIndex, double lowerValue, double upperValue)?
       onDragging;
 
   ///It's will be false if [xliderValues.values] is not complete
@@ -162,8 +168,8 @@ class XliderState extends State<Xlider>
 
   double _lowerValue = 0;
   double _upperValue = 0;
-  dynamic _outputLowerValue = 0;
-  dynamic _outputUpperValue = 0;
+  double _outputLowerValue = 0;
+  double _outputUpperValue = 0;
 
   double _realMin = 0;
   double _realMax = 0;
@@ -606,7 +612,7 @@ class XliderState extends State<Xlider>
     if (lockedHandlersDragOffset == 0) __lockedHandlersDragOffset = 0;
 
     if (selectedByTap) {
-      _callbacks('onDragStarted', 0);
+      _callbacks(XliderDragFunction.onDragStarted, XliderSide.left);
     }
 
     bool validMove = true;
@@ -724,10 +730,10 @@ class XliderState extends State<Xlider>
     setState(() {});
 
     if (selectedByTap) {
-      _callbacks('onDragging', 0);
-      _callbacks('onDragCompleted', 0);
+      _callbacks(XliderDragFunction.onDragging, XliderSide.left);
+      _callbacks(XliderDragFunction.onDragCompleted, XliderSide.left);
     } else {
-      _callbacks('onDragging', 0);
+      _callbacks(XliderDragFunction.onDragging, XliderSide.left);
     }
   }
 
@@ -841,7 +847,7 @@ class XliderState extends State<Xlider>
     _handlersDistance = _upperValue - _lowerValue;
 
     if (selectedByTap) {
-      _callbacks('onDragStarted', 1);
+      _callbacks(XliderDragFunction.onDragStarted, XliderSide.right);
     }
 
     bool validMove = true;
@@ -961,10 +967,10 @@ class XliderState extends State<Xlider>
     setState(() {});
 
     if (selectedByTap) {
-      _callbacks('onDragging', 1);
-      _callbacks('onDragCompleted', 1);
+      _callbacks(XliderDragFunction.onDragging, XliderSide.right);
+      _callbacks(XliderDragFunction.onDragCompleted, XliderSide.right);
     } else {
-      _callbacks('onDragging', 1);
+      _callbacks(XliderDragFunction.onDragging, XliderSide.right);
     }
   }
 
@@ -1182,7 +1188,7 @@ class XliderState extends State<Xlider>
 
           setState(() {});
 
-          _callbacks('onDragStarted', 0);
+          _callbacks(XliderDragFunction.onDragStarted, XliderSide.left);
         },
         onPointerUp: (_) {
           __dragging = false;
@@ -1208,7 +1214,7 @@ class XliderState extends State<Xlider>
 
           setState(() {});
 
-          _callbacks('onDragCompleted', 0);
+          _callbacks(XliderDragFunction.onDragCompleted, XliderSide.left);
         },
       ),
     );
@@ -1288,7 +1294,7 @@ class XliderState extends State<Xlider>
             _handlerHelperModel.rightHandlerScaleAnimationController!.forward();
           }
 
-          _callbacks('onDragStarted', 1);
+          _callbacks(XliderDragFunction.onDragStarted, XliderSide.right);
         },
         onPointerUp: (_) {
           __dragging = false;
@@ -1323,7 +1329,7 @@ class XliderState extends State<Xlider>
 
           setState(() {});
 
-          _callbacks('onDragCompleted', 1);
+          _callbacks(XliderDragFunction.onDragCompleted, XliderSide.right);
         },
       ),
     );
@@ -1388,13 +1394,16 @@ class XliderState extends State<Xlider>
                 }
               } else {
                 if (_slidingByActiveTrackBar) {
-                  _callbacks('onDragCompleted', 0);
+                  _callbacks(
+                      XliderDragFunction.onDragCompleted, XliderSide.left);
                 }
                 if (_leftTapAndSlide) {
-                  _callbacks('onDragCompleted', 0);
+                  _callbacks(
+                      XliderDragFunction.onDragCompleted, XliderSide.left);
                 }
                 if (_rightTapAndSlide) {
-                  _callbacks('onDragCompleted', 1);
+                  _callbacks(
+                      XliderDragFunction.onDragCompleted, XliderSide.right);
                 }
               }
 
@@ -1547,7 +1556,7 @@ class XliderState extends State<Xlider>
 
   _trackBarSlideCallDragStated(handlerIndex) {
     if (!_trackBarSlideOnDragStartedCalled) {
-      _callbacks('onDragStarted', handlerIndex);
+      _callbacks(XliderDragFunction.onDragStarted, handlerIndex);
       _trackBarSlideOnDragStartedCalled = true;
     }
   }
@@ -1558,26 +1567,26 @@ class XliderState extends State<Xlider>
     return _handlerHelperModel.handlersWidth / 2 + widget.touchSize - xDragTmp;
   }
 
-  void _callbacks(String callbackName, int handlerIndex) {
-    dynamic lowerValue = _outputLowerValue;
-    dynamic upperValue = _outputUpperValue;
+  void _callbacks(XliderDragFunction type, XliderSide handlerIndex) {
+    double lowerValue = _outputLowerValue;
+    double upperValue = _outputUpperValue;
     if (widget.startAtRight == true || widget.rangeSlider == false) {
       lowerValue = _outputUpperValue;
       upperValue = _outputLowerValue;
     }
 
-    switch (callbackName) {
-      case 'onDragging':
+    switch (type) {
+      case XliderDragFunction.onDragging:
         if (widget.onDragging != null) {
           widget.onDragging!(handlerIndex, lowerValue, upperValue);
         }
         break;
-      case 'onDragCompleted':
+      case XliderDragFunction.onDragCompleted:
         if (widget.onDragCompleted != null) {
           widget.onDragCompleted!(handlerIndex, lowerValue, upperValue);
         }
         break;
-      case 'onDragStarted':
+      case XliderDragFunction.onDragStarted:
         if (widget.onDragStarted != null) {
           widget.onDragStarted!(handlerIndex, lowerValue, upperValue);
         }
@@ -1585,12 +1594,12 @@ class XliderState extends State<Xlider>
     }
   }
 
-  dynamic _displayRealValue(double? value) {
+  double _displayRealValue(double value) {
     if (_fixedValues.isNotEmpty) {
-      return _fixedValues[value!.toInt()].value;
+      return _fixedValues[value.toInt()].value ?? 0;
     }
 
-    return double.parse((value! + _widgetMin!).toStringAsFixed(_decimalScale));
+    return double.parse((value + _widgetMin!).toStringAsFixed(_decimalScale));
   }
 
   void _arrangeHandlersZIndex() {

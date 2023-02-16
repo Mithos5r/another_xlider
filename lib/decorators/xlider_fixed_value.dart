@@ -2,7 +2,7 @@ part of xlider;
 
 class XliderFixedValue {
   final int? percent;
-  final dynamic value;
+  final double? value;
 
   XliderFixedValue({this.percent, this.value})
       : assert(
