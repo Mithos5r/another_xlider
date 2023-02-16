@@ -1,5 +1,4 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:flutter/material.dart' show Icons, Colors;
 import 'package:flutter/widgets.dart';
 
 import '../another_xlider.dart';
@@ -210,17 +209,6 @@ class HandlerHelperModel {
     required double? touchSize,
     required bool rtl,
   }) {
-    XliderHandler inputRightHandler = rightHandler ?? XliderHandler();
-    inputRightHandler.child ??=
-        const Icon(Icons.chevron_left, color: Colors.black45);
-    inputRightHandler.decoration ??= const BoxDecoration(boxShadow: [
-      BoxShadow(
-          color: Colors.black26,
-          blurRadius: 2,
-          spreadRadius: 0.2,
-          offset: Offset(0, 1))
-    ], color: Colors.white, shape: BoxShape.circle);
-
     final rightWidgetHandler = MakeHandler(
         animation: rightHandlerScaleAnimation,
         id: rightHandlerKey,
@@ -228,7 +216,7 @@ class HandlerHelperModel {
         handlerData: rightHandler,
         width: handlersWidth,
         height: handlersHeight,
-        handlerIndex: 2,
+        handlerSide: XliderHandlerSide.right,
         touchSize: touchSize);
 
     final leftWidgetHandler = MakeHandler(

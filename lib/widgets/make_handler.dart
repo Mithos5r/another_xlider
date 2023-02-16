@@ -10,7 +10,7 @@ class MakeHandler extends StatelessWidget {
   final XliderHandler? handlerData;
   final bool? visibleTouchArea;
   final Animation? animation;
-  final int? handlerIndex;
+  final XliderHandlerSide? handlerSide;
   final bool rtl;
   final bool rangeSlider;
   final double? touchSize;
@@ -25,7 +25,7 @@ class MakeHandler extends StatelessWidget {
       this.animation,
       this.rtl = false,
       this.rangeSlider = false,
-      this.handlerIndex,
+      this.handlerSide = XliderHandlerSide.left,
       this.touchSize})
       : super(key: key);
 
@@ -37,25 +37,18 @@ class MakeHandler extends StatelessWidget {
     localHeight = height! + (touchSize! * 2);
     localWidth = width! + (touchSize! * 2);
 
-    XliderHandler handler = handlerData ?? XliderHandler();
-
-    if (handlerIndex == 2) {
-      handler.child ??= const Icon(Icons.chevron_left, color: Colors.black45);
+    XliderHandler handler = handlerData ?? const XliderHandler();
+    Widget? child;
+    if (handlerSide == XliderHandlerSide.right) {
+      child = const Icon(Icons.chevron_left, color: Colors.black45);
     } else {
       IconData hIcon = Icons.chevron_right;
       if (rtl && !rangeSlider) {
         hIcon = Icons.chevron_left;
       }
-      handler.child ??= Icon(hIcon, color: Colors.black45);
+      child ??= Icon(hIcon, color: Colors.black45);
     }
-
-    handler.decoration ??= const BoxDecoration(boxShadow: [
-      BoxShadow(
-          color: Colors.black26,
-          blurRadius: 2,
-          spreadRadius: 0.2,
-          offset: Offset(0, 1))
-    ], color: Colors.white, shape: BoxShape.circle);
+    handler = handler.copyWith(child: handler.child ?? child);
 
     return Center(
       child: SizedBox(

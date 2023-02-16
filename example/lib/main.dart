@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:another_xlider/another_xlider.dart';
+import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 
@@ -42,11 +42,12 @@ class _MyHomePageState extends State<MyHomePage> {
             Container(
               padding: EdgeInsets.all(50),
               child: Xlider(
-                values: [0, 20],
-                max: 100,
-                min: 0,
-                jump: true,
-                visibleTouchArea: true,
+                xliderValues: XliderValues(
+                  values: XliderRangeValues(min: 0, max: 20),
+                  range: XliderRangeValues(min: 0, max: 50),
+                  distances: XliderRangeValues(min: 5),
+                ),
+
               ),
             ),
 //             Container(

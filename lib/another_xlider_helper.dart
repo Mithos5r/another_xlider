@@ -19,43 +19,27 @@ mixin XliderFunction<T extends StatefulWidget> on State<T> {
 
   void validations({
     required bool isRangeSlider,
-    required List<double> values,
+    required XliderRangeValues values,
     required List<XliderFixedValue>? fixedValues,
     required double? widgetMax,
     required double? widgetMin,
   }) {
-    // if (widgetMax == null && widgetMin == null) {
-    //   throw 'Error interno';
-    // }
-    if (isRangeSlider && values.length < 2) {
-      throw 'when range mode is true, slider needs both lower and upper values';
-    }
+    final double valueMin = (values.min ?? 0);
+    final double valueMax = (values.max ?? 0);
 
     if (fixedValues == null) {
-      if (values[0] < widgetMin!) {
+      if (valueMin < widgetMin!) {
         throw 'Lower value should be greater than min';
       }
 
       if (isRangeSlider) {
-        if (values[1] > widgetMax!) {
+        if ((values.max ?? 0) > widgetMax!) {
           throw 'Upper value should be smaller than max';
         }
       }
     } else {
-      if (!(values[0] >= 0 && values[0] <= 100)) {
+      if (!(valueMax >= 0 && valueMin <= 100)) {
         throw 'When using fixedValues, you should set values within the range of fixedValues';
-      }
-
-      if (isRangeSlider && values.length > 1) {
-        if (!(values[1] >= 0 && values[1] <= 100)) {
-          throw 'When using fixedValues, you should set values within the range of fixedValues';
-        }
-      }
-    }
-
-    if (isRangeSlider == true) {
-      if (values[0] > values[1]) {
-        throw 'Lower value must be smaller than upper value';
       }
     }
   }

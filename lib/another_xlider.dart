@@ -8,7 +8,7 @@ import 'package:another_xlider/widgets/active_track.dart';
 import 'package:another_xlider/widgets/inactive_track.dart';
 import 'package:another_xlider/widgets/tooltip.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' show Colors;
+import 'package:flutter/material.dart' show Colors, Icons;
 import 'package:flutter/widgets.dart';
 
 import 'models/container_helper_model.dart';
@@ -23,14 +23,18 @@ part 'decorators/hatch/xlider_hatch_mark_label.dart';
 part 'decorators/tooltip/xlider_tooltip.dart';
 part 'decorators/tooltip/xlider_tooltip_box.dart';
 part 'decorators/tooltip/xlider_tooltip_position_offset.dart';
+part 'decorators/xlider_decorations.dart';
 part 'decorators/xlider_fixed_value.dart';
 part 'decorators/xlider_ignore_steps.dart';
 part 'decorators/xlider_sized_box.dart';
 part 'decorators/xlider_track_bar.dart';
-part 'handler/xlider_handler.dart';
 part 'handler/xlider_handler_animation.dart';
+part 'inputs/xlider_handler.dart';
 // inputs
+part 'inputs/xlider_range_values.dart';
 part 'inputs/xlider_step.dart';
+part 'inputs/xlider_values.dart';
+part 'xlider_handler_side.dart';
 part 'xlider_tooltip_direction.dart';
 
 /*
@@ -48,13 +52,9 @@ class Xlider extends StatefulWidget {
   ///
   ///If [values] lenght is bigger than 1 will be a SliderRange.
   ///[values] must be in order with [min],[max] or [fixedValues] for show it correctly.
-  final List<double> values;
 
-  ///Minimum value for slider;
-  final double? min;
+  final XliderValues? xliderValues;
 
-  ///Maximum value for slider;
-  final double? max;
   final double? handlerWidth;
   final double? handlerHeight;
   final XliderHandler? handler;
@@ -66,10 +66,11 @@ class Xlider extends StatefulWidget {
   final Function(int handlerIndex, dynamic lowerValue, dynamic upperValue)?
       onDragging;
 
-  final List<XliderFixedValue>? fixedValues;
   final bool rangeSlider;
   final bool rtl;
   final bool jump;
+
+  ///If true. It's possible to tap in the slider and set the values
   final bool selectByTap;
   final List<XliderIgnoreSteps> ignoreSteps;
   final bool disabled;
@@ -77,8 +78,7 @@ class Xlider extends StatefulWidget {
 
   ///Show the touchable area of the handlers
   final bool visibleTouchArea;
-  final double minimumDistance;
-  final double maximumDistance;
+
   final XliderHandlerAnimation handlerAnimation;
   final XliderTooltip? tooltip;
   final XliderTrackBar trackBar;
@@ -86,75 +86,65 @@ class Xlider extends StatefulWidget {
   final XliderHatchMark? hatchMark;
   final bool centeredOrigin;
   final bool lockHandlers;
-  final double? lockDistance;
-  final BoxDecoration? decoration;
-  final BoxDecoration? foregroundDecoration;
 
-  Xlider(
-      {Key? key,
-      this.min,
-      this.max,
-      required this.values,
-      this.fixedValues,
-      this.handler,
-      this.rightHandler,
-      this.handlerHeight,
-      this.handlerWidth,
-      this.onDragStarted,
-      this.onDragCompleted,
-      this.onDragging,
-      this.rtl = false,
-      this.jump = false,
-      this.ignoreSteps = const [],
-      this.disabled = false,
-      this.touchSize,
-      this.visibleTouchArea = false,
-      this.minimumDistance = 0,
-      this.maximumDistance = 0,
-      this.tooltip,
-      this.trackBar = const XliderTrackBar(),
-      this.handlerAnimation = const XliderHandlerAnimation(),
-      this.selectByTap = true,
-      this.step = const XliderStep(),
-      this.hatchMark,
-      this.centeredOrigin = false,
-      this.lockHandlers = false,
-      this.lockDistance,
-      this.decoration,
-      this.foregroundDecoration})
-      : rangeSlider = values.length > 1,
+  final XliderDecorations decorations;
+
+  Xlider({
+    Key? key,
+    this.xliderValues,
+    this.handler,
+    this.rightHandler,
+    this.handlerHeight,
+    this.handlerWidth,
+    this.onDragStarted,
+    this.onDragCompleted,
+    this.onDragging,
+    this.rtl = false,
+    this.jump = false,
+    this.ignoreSteps = const [],
+    this.disabled = false,
+    this.touchSize,
+    this.visibleTouchArea = false,
+    this.tooltip,
+    this.trackBar = const XliderTrackBar(),
+    this.handlerAnimation = const XliderHandlerAnimation(),
+    this.selectByTap = true,
+    this.step = const XliderStep(),
+    this.hatchMark,
+    this.centeredOrigin = false,
+    this.lockHandlers = false,
+    this.decorations = const XliderDecorations(),
+  })  : rangeSlider = xliderValues?.values?.isComplete ?? false,
         assert(touchSize == null || (touchSize >= 5 && touchSize <= 50)),
         assert((ignoreSteps.isNotEmpty && step.rangeList == null) ||
             (ignoreSteps.isEmpty)),
         assert((step.rangeList != null &&
-                minimumDistance == 0 &&
-                maximumDistance == 0) ||
-            (minimumDistance > 0 && step.rangeList == null) ||
-            (maximumDistance > 0 && step.rangeList == null) ||
+                xliderValues?.distances?.min == 0 &&
+                xliderValues?.distances?.max == 0) ||
+            ((xliderValues?.distances?.min ?? 0) > 0 &&
+                step.rangeList == null) ||
+            ((xliderValues?.distances?.max ?? 0) > 0 &&
+                step.rangeList == null) ||
             (step.rangeList == null)),
         assert(centeredOrigin == false ||
             (centeredOrigin == true &&
-                (values.length > 1) == false &&
+                (xliderValues?.values?.isComplete ?? false) == false &&
                 lockHandlers == false &&
-                minimumDistance == 0 &&
-                maximumDistance == 0)),
+                xliderValues?.distances?.min == 0 &&
+                xliderValues?.distances?.max == 0)),
         assert(lockHandlers == false ||
             (centeredOrigin == false &&
                 (ignoreSteps.isEmpty) &&
-                (fixedValues == null || fixedValues.isEmpty) &&
-                (values.length > 1) == true &&
-                values.length > 1 &&
+                (xliderValues?.fixedValues == null ||
+                    (xliderValues?.fixedValues?.isEmpty ?? false)) &&
+                (xliderValues?.values?.isComplete ?? false) == true &&
+                (xliderValues?.values?.isComplete ?? false) &&
                 lockHandlers == true &&
-                lockDistance != null &&
-                step.rangeList == null &&
-                lockDistance >=
-                    step.step /* && values[1] - values[0] == lockDistance*/)),
+                step.rangeList == null)),
         assert(
-            fixedValues != null || (min != null && max != null && min <= max),
-            "Min and Max are required if fixedValues is null"),
-        assert(
-            (values.length > 1) == false ||
-                (values.length > 1 == true && values.length > 1),
+            (xliderValues?.values?.isComplete ?? false) == false ||
+                ((xliderValues?.values?.isComplete ?? false) == true &&
+                    (xliderValues?.values?.isComplete ?? false)),
             "Range slider needs two values"),
         super(key: key);
 
@@ -165,7 +155,6 @@ class Xlider extends StatefulWidget {
 class XliderState extends State<Xlider>
     with TickerProviderStateMixin, XliderFunction, XliderHatchMarkHelper {
   bool _isInitCall = true;
-  final String data = '';
   double _touchSize = 15;
 
   double _lowerValue = 0;
@@ -190,9 +179,6 @@ class XliderState extends State<Xlider>
 
   double xDragTmp = 0;
   double yDragTmp = 0;
-
-  double? xDragStart;
-  double? yDragStart;
 
   double? _widgetStep;
   double? _widgetMin;
@@ -298,8 +284,8 @@ class XliderState extends State<Xlider>
               key: containerKey,
               height: _containerHelperModel.containerHeight,
               width: _containerHelperModel.containerWidth,
-              foregroundDecoration: widget.foregroundDecoration,
-              decoration: widget.decoration,
+              foregroundDecoration: widget.decorations.foregroundDecoration,
+              decoration: widget.decorations.backgroundDecoration,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: drawHandlers(),
@@ -350,16 +336,16 @@ class XliderState extends State<Xlider>
   }
 
   void initMethod() {
-    _widgetMax = widget.max;
-    _widgetMin = widget.min;
+    _widgetMax = widget.xliderValues?.range?.max;
+    _widgetMin = widget.xliderValues?.range?.min;
 
     _touchSize = widget.touchSize ?? 15;
 
     // validate inputs
     validations(
         isRangeSlider: widget.rangeSlider,
-        values: widget.values,
-        fixedValues: widget.fixedValues,
+        values: widget.xliderValues?.values ?? const XliderRangeValues(),
+        fixedValues: widget.xliderValues?.fixedValues,
         widgetMax: _widgetMax,
         widgetMin: _widgetMin);
 
@@ -372,13 +358,15 @@ class XliderState extends State<Xlider>
     _setValues();
 
     if (widget.rangeSlider == true &&
-        widget.maximumDistance > 0 &&
-        (_upperValue - _lowerValue) > widget.maximumDistance) {
+        (widget.xliderValues?.distances?.max ?? 0) > 0 &&
+        (_upperValue - _lowerValue) >
+            (widget.xliderValues?.distances?.max ?? 0)) {
       throw 'lower and upper distance is more than maximum distance';
     }
     if (widget.rangeSlider == true &&
-        widget.minimumDistance > 0 &&
-        (_upperValue - _lowerValue) < widget.minimumDistance) {
+        (widget.xliderValues?.distances?.min ?? 0) > 0 &&
+        (_upperValue - _lowerValue) <
+            (widget.xliderValues?.distances?.min ?? 0)) {
       throw 'lower and upper distance is less than minimum distance';
     }
 
@@ -433,12 +421,13 @@ class XliderState extends State<Xlider>
 
   void _setParameters() {
     _realMin = 0;
-    _widgetMax = widget.max;
-    _widgetMin = widget.min;
+    _widgetMax = widget.xliderValues?.range?.max;
+    _widgetMin = widget.xliderValues?.range?.min;
 
     _ignoreSteps = [];
 
-    if (widget.fixedValues != null && widget.fixedValues!.isNotEmpty) {
+    if (widget.xliderValues?.fixedValues != null &&
+        widget.xliderValues!.fixedValues!.isNotEmpty) {
       _realMax = 100;
       _realMin = 0;
       _widgetStep = 1;
@@ -446,7 +435,7 @@ class XliderState extends State<Xlider>
       _widgetMin = 0;
 
       List<double> fixedValuesIndices = [];
-      for (XliderFixedValue fixedValue in widget.fixedValues!) {
+      for (XliderFixedValue fixedValue in widget.xliderValues!.fixedValues!) {
         fixedValuesIndices.add(fixedValue.percent!.toDouble());
       }
 
@@ -455,7 +444,7 @@ class XliderState extends State<Xlider>
       List<double> fixedV = [];
       for (double fixedPercent = 0; fixedPercent <= 100; fixedPercent++) {
         dynamic fValue = '';
-        for (XliderFixedValue fixedValue in widget.fixedValues!) {
+        for (XliderFixedValue fixedValue in widget.xliderValues!.fixedValues!) {
           if (fixedValue.percent == fixedPercent.toInt()) {
             fixedValuesIndices.add(fixedValue.percent!.toDouble());
             fValue = fixedValue.value;
@@ -514,7 +503,7 @@ class XliderState extends State<Xlider>
       rtl: widget.rtl,
     );
 
-    _handlersDistance = widget.lockDistance ?? _upperValue - _lowerValue;
+    _handlersDistance = _upperValue - _lowerValue;
   }
 
   void _setDivisionAndDecimalScale() {
@@ -529,9 +518,9 @@ class XliderState extends State<Xlider>
 
   List<double?> _calculateUpperAndLowerValues() {
     double? localLV, localUV;
-    localLV = widget.values[0];
+    localLV = widget.xliderValues?.values?.min;
     if (widget.rangeSlider) {
-      localUV = widget.values[1];
+      localUV = widget.xliderValues?.values?.max;
     } else {
       // when direction is rtl, then we use left handler. so to make right hand side
       // as blue ( as if selected ), then upper value should be max
@@ -606,7 +595,7 @@ class XliderState extends State<Xlider>
       return;
     }
 
-    _handlersDistance = widget.lockDistance ?? _upperValue - _lowerValue;
+    _handlersDistance = _upperValue - _lowerValue;
 
     // Tip: lockedHandlersDragOffset only subtracts from left handler position
     // because it calculates drag position only by left handler's position
@@ -636,22 +625,26 @@ class XliderState extends State<Xlider>
     __rAxis = getValueByPosition(__axisPosTmp!);
 
     if (widget.rangeSlider &&
-        widget.minimumDistance > 0 &&
-        (__rAxis! + widget.minimumDistance) >= _upperValue) {
-      _lowerValue = (_upperValue - widget.minimumDistance > _realMin)
-          ? _upperValue - widget.minimumDistance
-          : _realMin;
+        (widget.xliderValues?.distances?.min ?? 0) > 0 &&
+        (__rAxis! + (widget.xliderValues?.distances?.min ?? 0)) >=
+            _upperValue) {
+      _lowerValue =
+          (_upperValue - (widget.xliderValues?.distances?.min ?? 0) > _realMin)
+              ? _upperValue - (widget.xliderValues?.distances?.min ?? 0)
+              : _realMin;
       _updateLowerValue(_lowerValue);
 
       if (lockedHandlersDragOffset == 0) validMove = validMove & false;
     }
 
     if (widget.rangeSlider &&
-        widget.maximumDistance > 0 &&
-        __rAxis! <= (_upperValue - widget.maximumDistance)) {
-      _lowerValue = (_upperValue - widget.maximumDistance > _realMin)
-          ? _upperValue - widget.maximumDistance
-          : _realMin;
+        (widget.xliderValues?.distances?.max ?? 0) > 0 &&
+        __rAxis! <=
+            (_upperValue - (widget.xliderValues?.distances?.max ?? 0))) {
+      _lowerValue =
+          (_upperValue - (widget.xliderValues?.distances?.max ?? 0) > _realMin)
+              ? _upperValue - (widget.xliderValues?.distances?.max ?? 0)
+              : _realMin;
       _updateLowerValue(_lowerValue);
 
       if (lockedHandlersDragOffset == 0) validMove = validMove & false;
@@ -681,7 +674,7 @@ class XliderState extends State<Xlider>
 
       if (tmpLowerValue > _upperValue) tmpLowerValue = _upperValue;
 
-      if (widget.jump == true) {
+      if (widget.jump) {
         if (!forcePosStop) {
           _lowerValue = tmpLowerValue;
           _leftHandlerMoveBetweenSteps(
@@ -840,7 +833,7 @@ class XliderState extends State<Xlider>
     if (widget.disabled ||
         (widget.rightHandler != null && widget.rightHandler!.disabled)) return;
 
-    _handlersDistance = widget.lockDistance ?? _upperValue - _lowerValue;
+    _handlersDistance = _upperValue - _lowerValue;
 
     if (selectedByTap) {
       _callbacks('onDragStarted', 1);
@@ -869,20 +862,24 @@ class XliderState extends State<Xlider>
     __rAxis = getValueByPosition(__axisPosTmp!);
 
     if (widget.rangeSlider &&
-        widget.minimumDistance > 0 &&
-        (__rAxis! - widget.minimumDistance) <= _lowerValue) {
-      _upperValue = (_lowerValue + widget.minimumDistance < _realMax)
-          ? _lowerValue + widget.minimumDistance
-          : _realMax;
+        (widget.xliderValues?.distances?.min ?? 0) > 0 &&
+        (__rAxis! - (widget.xliderValues?.distances?.min ?? 0)) <=
+            _lowerValue) {
+      _upperValue =
+          (_lowerValue + (widget.xliderValues?.distances?.min ?? 0) < _realMax)
+              ? _lowerValue + (widget.xliderValues?.distances?.min ?? 0)
+              : _realMax;
       validMove = validMove & false;
       _updateUpperValue(_upperValue);
     }
     if (widget.rangeSlider &&
-        widget.maximumDistance > 0 &&
-        __rAxis! >= (_lowerValue + widget.maximumDistance)) {
-      _upperValue = (_lowerValue + widget.maximumDistance < _realMax)
-          ? _lowerValue + widget.maximumDistance
-          : _realMax;
+        (widget.xliderValues?.distances?.max ?? 0) > 0 &&
+        __rAxis! >=
+            (_lowerValue + (widget.xliderValues?.distances?.max ?? 0))) {
+      _upperValue =
+          (_lowerValue + (widget.xliderValues?.distances?.max ?? 0) < _realMax)
+              ? _lowerValue + (widget.xliderValues?.distances?.max ?? 0)
+              : _realMax;
       validMove = validMove & false;
       _updateUpperValue(_upperValue);
     }
