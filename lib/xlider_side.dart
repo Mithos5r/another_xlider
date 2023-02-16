@@ -1,6 +1,6 @@
 part of xlider;
 
-enum XliderHandlerSide {
+enum XliderSide {
   left,
   right,
 }

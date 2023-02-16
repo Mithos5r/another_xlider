@@ -23,18 +23,20 @@ part 'decorators/hatch/xlider_hatch_mark_label.dart';
 part 'decorators/tooltip/xlider_tooltip.dart';
 part 'decorators/tooltip/xlider_tooltip_box.dart';
 part 'decorators/tooltip/xlider_tooltip_position_offset.dart';
+part 'decorators/track_bar/xlider_track_bar.dart';
+part 'decorators/track_bar/xlider_track_bar_configuration.dart';
 part 'decorators/xlider_decorations.dart';
 part 'decorators/xlider_fixed_value.dart';
 part 'decorators/xlider_ignore_steps.dart';
 part 'decorators/xlider_sized_box.dart';
-part 'decorators/xlider_track_bar.dart';
 part 'handler/xlider_handler_animation.dart';
 part 'inputs/xlider_handler.dart';
+part 'inputs/xlider_handler_configuration.dart';
 // inputs
 part 'inputs/xlider_range_values.dart';
 part 'inputs/xlider_step.dart';
 part 'inputs/xlider_values.dart';
-part 'xlider_handler_side.dart';
+part 'xlider_side.dart';
 part 'xlider_tooltip_direction.dart';
 
 /*
@@ -50,15 +52,13 @@ part 'xlider_tooltip_direction.dart';
 class Xlider extends StatefulWidget {
   ///Initial values for slider.
   ///
-  ///If [values] lenght is bigger than 1 will be a SliderRange.
-  ///[values] must be in order with [min],[max] or [fixedValues] for show it correctly.
-
+  ///If [xliderValues.values] has max and min then will be a range slider.
   final XliderValues? xliderValues;
 
-  final double? handlerWidth;
-  final double? handlerHeight;
-  final XliderHandler? handler;
-  final XliderHandler? rightHandler;
+  ///Configurator of handler information. Give you the change of
+  ///lock, set height and width, and set all the params correctly of the handler
+  final XliderHandlerConfiguration xliderHandlerConfiguration;
+
   final Function(int handlerIndex, dynamic lowerValue, dynamic upperValue)?
       onDragStarted;
   final Function(int handlerIndex, dynamic lowerValue, dynamic upperValue)?
@@ -66,56 +66,60 @@ class Xlider extends StatefulWidget {
   final Function(int handlerIndex, dynamic lowerValue, dynamic upperValue)?
       onDragging;
 
+  ///It's will be false if [xliderValues.values] is not complete
   final bool rangeSlider;
-  final bool rtl;
+
+  ///Change slider direction
+  final XliderSide sliderDirection;
+
+  ///It's will be true if [sliderDirection.right]
+  final bool startAtRight;
   final bool jump;
 
   ///If true. It's possible to tap in the slider and set the values
   final bool selectByTap;
   final List<XliderIgnoreSteps> ignoreSteps;
+
+  ///Disable slider.
+  ///
+  ///If it's [disabled] slider doesn't work. Slider Color will be change
   final bool disabled;
-  final double? touchSize;
+  final double touchSize;
 
   ///Show the touchable area of the handlers
   final bool visibleTouchArea;
 
-  final XliderHandlerAnimation handlerAnimation;
   final XliderTooltip? tooltip;
-  final XliderTrackBar trackBar;
+  final XliderTrackBarConfiguration trackBar;
   final XliderStep step;
   final XliderHatchMark? hatchMark;
   final bool centeredOrigin;
-  final bool lockHandlers;
 
   final XliderDecorations decorations;
 
   Xlider({
     Key? key,
     this.xliderValues,
-    this.handler,
-    this.rightHandler,
-    this.handlerHeight,
-    this.handlerWidth,
+    this.xliderHandlerConfiguration = const XliderHandlerConfiguration(),
     this.onDragStarted,
     this.onDragCompleted,
     this.onDragging,
-    this.rtl = false,
+    this.sliderDirection = XliderSide.left,
     this.jump = false,
     this.ignoreSteps = const [],
     this.disabled = false,
-    this.touchSize,
+    this.touchSize = 15,
     this.visibleTouchArea = false,
     this.tooltip,
-    this.trackBar = const XliderTrackBar(),
-    this.handlerAnimation = const XliderHandlerAnimation(),
+    this.trackBar = const XliderTrackBarConfiguration(),
     this.selectByTap = true,
     this.step = const XliderStep(),
     this.hatchMark,
     this.centeredOrigin = false,
-    this.lockHandlers = false,
     this.decorations = const XliderDecorations(),
   })  : rangeSlider = xliderValues?.values?.isComplete ?? false,
-        assert(touchSize == null || (touchSize >= 5 && touchSize <= 50)),
+        startAtRight = sliderDirection == XliderSide.right,
+        assert((touchSize >= 5 && touchSize <= 50)),
         assert((ignoreSteps.isNotEmpty && step.rangeList == null) ||
             (ignoreSteps.isEmpty)),
         assert((step.rangeList != null &&
@@ -128,18 +132,18 @@ class Xlider extends StatefulWidget {
             (step.rangeList == null)),
         assert(centeredOrigin == false ||
             (centeredOrigin == true &&
-                (xliderValues?.values?.isComplete ?? false) == false &&
-                lockHandlers == false &&
-                xliderValues?.distances?.min == 0 &&
-                xliderValues?.distances?.max == 0)),
-        assert(lockHandlers == false ||
-            (centeredOrigin == false &&
+                !(xliderValues?.values?.isComplete ?? false) &&
+                xliderHandlerConfiguration.lock == false &&
+                (xliderValues?.distances?.min ?? 0) == 0 &&
+                (xliderValues?.distances?.max ?? 0) == 0)),
+        assert(!xliderHandlerConfiguration.lock ||
+            (!centeredOrigin &&
                 (ignoreSteps.isEmpty) &&
                 (xliderValues?.fixedValues == null ||
                     (xliderValues?.fixedValues?.isEmpty ?? false)) &&
-                (xliderValues?.values?.isComplete ?? false) == true &&
                 (xliderValues?.values?.isComplete ?? false) &&
-                lockHandlers == true &&
+                (xliderValues?.values?.isComplete ?? false) &&
+                xliderHandlerConfiguration.lock &&
                 step.rangeList == null)),
         assert(
             (xliderValues?.values?.isComplete ?? false) == false ||
@@ -155,7 +159,6 @@ class Xlider extends StatefulWidget {
 class XliderState extends State<Xlider>
     with TickerProviderStateMixin, XliderFunction, XliderHatchMarkHelper {
   bool _isInitCall = true;
-  double _touchSize = 15;
 
   double _lowerValue = 0;
   double _upperValue = 0;
@@ -244,8 +247,8 @@ class XliderState extends State<Xlider>
             builder: (BuildContext context, BoxConstraints constraints) {
           oldOrientation ??= MediaQuery.of(context).orientation;
           final double sliderProperSize = findProperSliderSize(
-            activeTrackBarHeight: widget.trackBar.activeTrackBarHeight,
-            inactiveTrackBarHeight: widget.trackBar.inactiveTrackBarHeight,
+            activeTrackBarHeight: widget.trackBar.activeTrackbar.thickness,
+            inactiveTrackBarHeight: widget.trackBar.inactiveTrackBar.thickness,
             handlersHeight: _handlerHelperModel.handlersHeight,
             handlersWidth: _handlerHelperModel.handlersWidth,
           );
@@ -322,10 +325,10 @@ class XliderState extends State<Xlider>
           getPositioned: _points.add,
           containerWidth: _containerHelperModel.containerWidth,
           maxTrackBarHeight: ([
-            widget.trackBar.inactiveTrackBarHeight,
-            widget.trackBar.activeTrackBarHeight
+            widget.trackBar.inactiveTrackBar.thickness,
+            widget.trackBar.activeTrackbar.thickness
           ].reduce(max)),
-          rtl: widget.rtl,
+          rtl: widget.startAtRight,
           containerWidthWithoutPadding:
               _containerHelperModel.containerWidthWithoutPadding ?? 0,
           containerHeightWithoutPadding:
@@ -339,8 +342,6 @@ class XliderState extends State<Xlider>
     _widgetMax = widget.xliderValues?.range?.max;
     _widgetMin = widget.xliderValues?.range?.min;
 
-    _touchSize = widget.touchSize ?? 15;
-
     // validate inputs
     validations(
         isRangeSlider: widget.rangeSlider,
@@ -350,9 +351,11 @@ class XliderState extends State<Xlider>
         widgetMin: _widgetMin);
 
     _handlerHelperModel = _handlerHelperModel.setAnimations(
-        isInitialCall: _isInitCall,
-        animationProvider: this,
-        xliderHandlerAnimation: widget.handlerAnimation);
+      isInitialCall: _isInitCall,
+      animationProvider: this,
+      xliderHandlerAnimation:
+          widget.xliderHandlerConfiguration.handlerAnimation,
+    );
 
     _setParameters();
     _setValues();
@@ -480,8 +483,9 @@ class XliderState extends State<Xlider>
     _ignoreSteps.addAll(widget.ignoreSteps);
 
     _handlerHelperModel = _handlerHelperModel.copyWith(
-        handlersHeight: widget.handlerWidth ?? widget.handlerHeight ?? 35,
-        handlersWidth: widget.handlerHeight ?? widget.handlerWidth ?? 35);
+      handlersHeight: widget.xliderHandlerConfiguration.height,
+      handlersWidth: widget.xliderHandlerConfiguration.width,
+    );
 
     _setDivisionAndDecimalScale();
 
@@ -493,14 +497,14 @@ class XliderState extends State<Xlider>
     _arrangeHandlersZIndex();
 
     _handlerHelperModel = _handlerHelperModel.generateHandler(
-      rightHandler: widget.rightHandler,
+      rightHandler: widget.xliderHandlerConfiguration.rightHandler,
       isRangeSlider: widget.rangeSlider,
       rightHandlerKey: rightHandlerKey,
       leftHandlerKey: leftHandlerKey,
       visibleTouchArea: widget.visibleTouchArea,
-      handler: widget.handler,
-      touchSize: _touchSize,
-      rtl: widget.rtl,
+      handler: widget.xliderHandlerConfiguration.leftHandler,
+      touchSize: widget.touchSize,
+      rtl: widget.startAtRight,
     );
 
     _handlersDistance = _upperValue - _lowerValue;
@@ -524,7 +528,7 @@ class XliderState extends State<Xlider>
     } else {
       // when direction is rtl, then we use left handler. so to make right hand side
       // as blue ( as if selected ), then upper value should be max
-      if (widget.rtl) {
+      if (widget.startAtRight) {
         localUV = _widgetMax;
       } else {
         // when direction is ltr, so we use right handler, to make left hand side of handler
@@ -546,7 +550,7 @@ class XliderState extends State<Xlider>
     _outputUpperValue = _displayRealValue(_upperValue);
     _outputLowerValue = _displayRealValue(_lowerValue);
 
-    if (widget.rtl == true) {
+    if (widget.startAtRight == true) {
       _outputLowerValue = _displayRealValue(_upperValue);
       _outputUpperValue = _displayRealValue(_lowerValue);
 
@@ -563,7 +567,7 @@ class XliderState extends State<Xlider>
                     _handlerHelperModel.handlersWidth) /
                 _realMax) *
             value) -
-        _touchSize;
+        widget.touchSize;
   }
 
   double getValueByPosition(double position) {
@@ -591,7 +595,7 @@ class XliderState extends State<Xlider>
       double tappedPositionWithPadding = 0,
       bool selectedByTap = false}) {
     if (widget.disabled ||
-        (widget.handler != null && widget.handler!.disabled)) {
+        (widget.xliderHandlerConfiguration.leftHandler.disabled)) {
       return;
     }
 
@@ -618,7 +622,7 @@ class XliderState extends State<Xlider>
     __rightHandlerPosition = _handlerHelperModel.rightHandlerXPosition;
     __leftHandlerPosition = _handlerHelperModel.leftHandlerXPosition;
 
-    __axisPosTmp = __dAxis! - __axisDragTmp! + _touchSize;
+    __axisPosTmp = __dAxis! - __axisDragTmp! + widget.touchSize;
 
     _checkRangeStep(getValueByPositionIgnoreOffset(__axisPosTmp!));
 
@@ -650,9 +654,9 @@ class XliderState extends State<Xlider>
       if (lockedHandlersDragOffset == 0) validMove = validMove & false;
     }
 
-    double? tS = _touchSize;
+    double? tS = widget.touchSize;
     if (widget.jump) {
-      tS = _touchSize + _handlerHelperModel.handlersPadding;
+      tS = widget.touchSize + _handlerHelperModel.handlersPadding;
     }
 
     validMove = validMove & _leftHandlerIgnoreSteps(tS);
@@ -713,7 +717,8 @@ class XliderState extends State<Xlider>
     _handlerHelperModel = _handlerHelperModel.copyWith(
       leftHandlerXPosition: __leftHandlerPosition,
     );
-    if (widget.lockHandlers || lockedHandlersDragOffset > 0) {
+    if (widget.xliderHandlerConfiguration.lock ||
+        lockedHandlersDragOffset > 0) {
       _lockedHandlers('leftHandler');
     }
     setState(() {});
@@ -731,7 +736,7 @@ class XliderState extends State<Xlider>
     if (_ignoreSteps.isNotEmpty) {
       if (__axisPosTmp! <= 0) {
         double? ignorePoint;
-        if (widget.rtl) {
+        if (widget.startAtRight) {
           ignorePoint = _findBiggestIgnorePoint();
         } else {
           ignorePoint = _findSmallestIgnorePoint();
@@ -749,12 +754,12 @@ class XliderState extends State<Xlider>
       }
 
       for (XliderIgnoreSteps steps in _ignoreSteps) {
-        if (((!widget.rtl) &&
+        if (((!widget.startAtRight) &&
                 (getValueByPositionIgnoreOffset(__axisPosTmp!) >
                         steps.from! - _widgetStep! / 2 &&
                     getValueByPositionIgnoreOffset(__axisPosTmp!) <=
                         steps.to! + _widgetStep! / 2)) ||
-            ((widget.rtl) &&
+            ((widget.startAtRight) &&
                 (_realMax - getValueByPositionIgnoreOffset(__axisPosTmp!) >
                         steps.from! - _widgetStep! / 2 &&
                     _realMax - getValueByPositionIgnoreOffset(__axisPosTmp!) <=
@@ -823,7 +828,7 @@ class XliderState extends State<Xlider>
 
   void _updateLowerValue(value) {
     _outputLowerValue = _displayRealValue(value);
-    if (widget.rtl == true) {
+    if (widget.startAtRight == true) {
       _outputLowerValue = _displayRealValue(_realMax - value);
     }
   }
@@ -831,7 +836,7 @@ class XliderState extends State<Xlider>
   void _rightHandlerMove(PointerEvent pointer,
       {double tappedPositionWithPadding = 0, bool selectedByTap = false}) {
     if (widget.disabled ||
-        (widget.rightHandler != null && widget.rightHandler!.disabled)) return;
+        (widget.xliderHandlerConfiguration.rightHandler.disabled)) return;
 
     _handlersDistance = _upperValue - _lowerValue;
 
@@ -855,7 +860,7 @@ class XliderState extends State<Xlider>
             _handlerHelperModel.handlersPadding +
             1;
 
-    __axisPosTmp = __dAxis! - __axisDragTmp! + _touchSize;
+    __axisPosTmp = __dAxis! - __axisDragTmp! + widget.touchSize;
 
     _checkRangeStep(getValueByPositionIgnoreOffset(__axisPosTmp!));
 
@@ -884,11 +889,11 @@ class XliderState extends State<Xlider>
       _updateUpperValue(_upperValue);
     }
 
-    double? tS = _touchSize;
+    double? tS = widget.touchSize;
     double rM = _handlerHelperModel.handlersPadding;
     if (widget.jump) {
       rM = -_handlerHelperModel.handlersWidth;
-      tS = -_touchSize;
+      tS = -widget.touchSize;
     }
 
     validMove = validMove & _rightHandlerIgnoreSteps(tS);
@@ -949,7 +954,7 @@ class XliderState extends State<Xlider>
     _handlerHelperModel = _handlerHelperModel.copyWith(
         rightHandlerXPosition: __rightHandlerPosition);
 
-    if (widget.lockHandlers) {
+    if (widget.xliderHandlerConfiguration.lock) {
       _lockedHandlers('rightHandler');
     }
 
@@ -969,7 +974,7 @@ class XliderState extends State<Xlider>
       if (__axisPosTmp! <= 0) {
         if (!widget.rangeSlider) {
           double? ignorePoint;
-          if (widget.rtl) {
+          if (widget.startAtRight) {
             ignorePoint = _findBiggestIgnorePoint();
           } else {
             ignorePoint = _findSmallestIgnorePoint();
@@ -988,7 +993,7 @@ class XliderState extends State<Xlider>
           _containerHelperModel.containerSizeWithoutPadding!) {
         double? ignorePoint;
 
-        if (widget.rtl) {
+        if (widget.startAtRight) {
           ignorePoint = _findSmallestIgnorePoint();
         } else {
           ignorePoint = _findBiggestIgnorePoint();
@@ -1001,12 +1006,12 @@ class XliderState extends State<Xlider>
       }
 
       for (XliderIgnoreSteps steps in _ignoreSteps) {
-        if (((!widget.rtl) &&
+        if (((!widget.startAtRight) &&
                 (getValueByPositionIgnoreOffset(__axisPosTmp!) >
                         steps.from! - _widgetStep! / 2 &&
                     getValueByPositionIgnoreOffset(__axisPosTmp!) <=
                         steps.to! + _widgetStep! / 2)) ||
-            ((widget.rtl) &&
+            ((widget.startAtRight) &&
                 (_realMax - getValueByPositionIgnoreOffset(__axisPosTmp!) >
                         steps.from! - _widgetStep! / 2 &&
                     _realMax - getValueByPositionIgnoreOffset(__axisPosTmp!) <=
@@ -1028,12 +1033,12 @@ class XliderState extends State<Xlider>
       }
     }
     if (beyondBoundaries || ignoreBeyondBoundaries) {
-      if (widget.rtl) {
+      if (widget.startAtRight) {
         ignorePoint = _realMax - ignorePoint;
       }
       return ignorePoint;
     } else {
-      if (widget.rtl) return _realMax;
+      if (widget.startAtRight) return _realMax;
       return _realMin;
     }
   }
@@ -1051,13 +1056,13 @@ class XliderState extends State<Xlider>
       }
     }
     if (beyondBoundaries || ignoreBeyondBoundaries) {
-      if (widget.rtl) {
+      if (widget.startAtRight) {
         ignorePoint = _realMax - ignorePoint;
       }
 
       return ignorePoint;
     } else {
-      if (widget.rtl) return _realMin;
+      if (widget.startAtRight) return _realMin;
       return _realMax;
     }
   }
@@ -1083,7 +1088,7 @@ class XliderState extends State<Xlider>
 
   void _updateUpperValue(value) {
     _outputUpperValue = _displayRealValue(value);
-    if (widget.rtl == true) {
+    if (widget.startAtRight == true) {
       _outputUpperValue = _displayRealValue(_realMax - value);
     }
   }
@@ -1132,7 +1137,7 @@ class XliderState extends State<Xlider>
             alignment: Alignment.center,
             children: [
               Tooltip(
-                side: 'left',
+                side: XliderSide.left,
                 value: _outputLowerValue,
                 opacity: _tooltipHelperModel.leftTooltipOpacity,
                 animation: _tooltipHelperModel.leftTooltipAnimation!,
@@ -1153,7 +1158,7 @@ class XliderState extends State<Xlider>
         },
         onPointerDown: (_) {
           if (widget.disabled ||
-              (widget.handler != null && widget.handler!.disabled)) return;
+              (widget.xliderHandlerConfiguration.leftHandler.disabled)) return;
 
           _containerHelperModel = _containerHelperModel.renderBoxInitialization(
             screenSize: MediaQuery.of(context).size,
@@ -1170,7 +1175,7 @@ class XliderState extends State<Xlider>
           if (!_tooltipHelperModel.tooltipData.disabled &&
               _tooltipHelperModel.tooltipData.alwaysShowTooltip == false) {
             _tooltipHelperModel.startLeftAnimation(
-                lockHandlers: widget.lockHandlers);
+                lockHandlers: widget.xliderHandlerConfiguration.lock);
           }
 
           _handlerHelperModel.leftHandlerScaleAnimationController!.forward();
@@ -1186,17 +1191,18 @@ class XliderState extends State<Xlider>
             jump: !widget.jump,
             lowerPositionValue: getPositionByValue(_lowerValue),
             posititonValue: getPositionByValue(_lowerValue + _handlersDistance),
-            lockHandlers: widget.lockHandlers,
+            lockHandlers: widget.xliderHandlerConfiguration.lock,
             lockedHandlersDragOffset: __lockedHandlersDragOffset,
           );
 
           if (widget.disabled ||
-              (widget.handler != null && widget.handler!.disabled)) return;
+              (widget.xliderHandlerConfiguration.leftHandler.disabled)) return;
 
           _arrangeHandlersZIndex();
           _handlerHelperModel.stopHandlerLeftAnimation(
-              hasCustomReverseCurve:
-                  (widget.handlerAnimation.reverseCurve != null));
+              hasCustomReverseCurve: (widget.xliderHandlerConfiguration
+                      .handlerAnimation.reverseCurve !=
+                  null));
 
           _tooltipHelperModel = _tooltipHelperModel.hideTooltips();
 
@@ -1225,7 +1231,7 @@ class XliderState extends State<Xlider>
             alignment: Alignment.center,
             children: ([
               Tooltip(
-                side: 'right',
+                side: XliderSide.right,
                 value: _outputUpperValue,
                 opacity: _tooltipHelperModel.rightTooltipOpacity,
                 animation: _tooltipHelperModel.rightTooltipAnimation!,
@@ -1252,7 +1258,7 @@ class XliderState extends State<Xlider>
         },
         onPointerDown: (_) {
           if (widget.disabled ||
-              (widget.rightHandler != null && widget.rightHandler!.disabled)) {
+              (widget.xliderHandlerConfiguration.rightHandler.disabled)) {
             return;
           }
 
@@ -1271,7 +1277,7 @@ class XliderState extends State<Xlider>
           if (!_tooltipHelperModel.tooltipData.disabled &&
               _tooltipHelperModel.tooltipData.alwaysShowTooltip == false) {
             _tooltipHelperModel = _tooltipHelperModel.startRightAnimation(
-              lockHandlers: widget.lockHandlers,
+              lockHandlers: widget.xliderHandlerConfiguration.lock,
             );
 
             setState(() {});
@@ -1291,11 +1297,11 @@ class XliderState extends State<Xlider>
             jump: widget.jump,
             upperPositionValue: getPositionByValue(_upperValue),
             posititonValue: getPositionByValue(_upperValue - _handlersDistance),
-            lockHandlers: widget.lockHandlers,
+            lockHandlers: widget.xliderHandlerConfiguration.lock,
           );
 
           if (widget.disabled ||
-              (widget.rightHandler != null && widget.rightHandler!.disabled)) {
+              (widget.xliderHandlerConfiguration.rightHandler.disabled)) {
             return;
           }
 
@@ -1303,12 +1309,14 @@ class XliderState extends State<Xlider>
 
           if (widget.rangeSlider == false) {
             _handlerHelperModel.stopHandlerLeftAnimation(
-                hasCustomReverseCurve:
-                    (widget.handlerAnimation.reverseCurve != null));
+                hasCustomReverseCurve: (widget.xliderHandlerConfiguration
+                        .handlerAnimation.reverseCurve !=
+                    null));
           } else {
             _handlerHelperModel.stopHandlerRightAnimation(
-                hasCustomReverseCurve:
-                    (widget.handlerAnimation.reverseCurve != null));
+                hasCustomReverseCurve: (widget.xliderHandlerConfiguration
+                        .handlerAnimation.reverseCurve !=
+                    null));
           }
 
           _tooltipHelperModel = _tooltipHelperModel.hideTooltips();
@@ -1341,10 +1349,10 @@ class XliderState extends State<Xlider>
         disabled: widget.disabled,
         containerHelperModel: _containerHelperModel,
         handlerHelperModel: _handlerHelperModel,
-        touchSize: _touchSize,
+        touchSize: widget.touchSize,
         isRangeSlider: widget.rangeSlider,
         isCenterOrigen: widget.centeredOrigin,
-        isRtl: widget.rtl,
+        isRtl: widget.startAtRight,
       ),
     ];
     items.addAll(_points);
@@ -1393,8 +1401,9 @@ class XliderState extends State<Xlider>
               _tooltipHelperModel = _tooltipHelperModel.hideTooltips();
 
               _handlerHelperModel.stopHandlerAnimation(
-                  hasCustomReverseCurve:
-                      (widget.handlerAnimation.reverseCurve != null));
+                  hasCustomReverseCurve: (widget.xliderHandlerConfiguration
+                          .handlerAnimation.reverseCurve !=
+                      null));
 
               setState(() {});
             },
@@ -1453,11 +1462,11 @@ class XliderState extends State<Xlider>
               double leftHandlerLastPosition, rightHandlerLastPosition;
               double lX = _handlerHelperModel.leftHandlerXPosition +
                   _handlerHelperModel.handlersPadding +
-                  _touchSize +
+                  widget.touchSize +
                   _containerHelperModel.containerLeft;
               double rX = _handlerHelperModel.rightHandlerXPosition +
                   _handlerHelperModel.handlersPadding +
-                  _touchSize +
+                  widget.touchSize +
                   _containerHelperModel.containerLeft;
 
               _distanceFromRightHandler = (rX - _.position.dx);
@@ -1500,7 +1509,8 @@ class XliderState extends State<Xlider>
               }
 
               if (_ignoreSteps.isEmpty) {
-                if ((widget.lockHandlers || __lockedHandlersDragOffset > 0) &&
+                if ((widget.xliderHandlerConfiguration.lock ||
+                        __lockedHandlersDragOffset > 0) &&
                     !_tooltipHelperModel.tooltipData.disabled &&
                     _tooltipHelperModel.tooltipData.alwaysShowTooltip ==
                         false) {
@@ -1508,7 +1518,8 @@ class XliderState extends State<Xlider>
                       lockHandlers: true);
                 }
 
-                if ((widget.lockHandlers || __lockedHandlersDragOffset > 0)) {
+                if ((widget.xliderHandlerConfiguration.lock ||
+                    __lockedHandlersDragOffset > 0)) {
                   _handlerHelperModel.leftHandlerScaleAnimationController!
                       .forward();
                   _handlerHelperModel.rightHandlerScaleAnimationController!
@@ -1544,13 +1555,13 @@ class XliderState extends State<Xlider>
   _distance() {
     _distanceFromLeftHandler = _distanceFromLeftHandler!.abs();
     _distanceFromRightHandler = _distanceFromRightHandler!.abs();
-    return _handlerHelperModel.handlersWidth / 2 + _touchSize - xDragTmp;
+    return _handlerHelperModel.handlersWidth / 2 + widget.touchSize - xDragTmp;
   }
 
   void _callbacks(String callbackName, int handlerIndex) {
     dynamic lowerValue = _outputLowerValue;
     dynamic upperValue = _outputUpperValue;
-    if (widget.rtl == true || widget.rangeSlider == false) {
+    if (widget.startAtRight == true || widget.rangeSlider == false) {
       lowerValue = _outputUpperValue;
       upperValue = _outputLowerValue;
     }

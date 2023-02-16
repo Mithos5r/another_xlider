@@ -210,14 +210,15 @@ class HandlerHelperModel {
     required bool rtl,
   }) {
     final rightWidgetHandler = MakeHandler(
-        animation: rightHandlerScaleAnimation,
-        id: rightHandlerKey,
-        visibleTouchArea: visibleTouchArea,
-        handlerData: rightHandler,
-        width: handlersWidth,
-        height: handlersHeight,
-        handlerSide: XliderHandlerSide.right,
-        touchSize: touchSize);
+      animation: rightHandlerScaleAnimation,
+      id: rightHandlerKey,
+      visibleTouchArea: visibleTouchArea,
+      handlerData: rightHandler,
+      width: handlersWidth,
+      height: handlersHeight,
+      handlerSide: XliderSide.right,
+      touchSize: touchSize,
+    );
 
     final leftWidgetHandler = MakeHandler(
         animation: leftHandlerScaleAnimation,

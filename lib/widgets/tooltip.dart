@@ -17,7 +17,7 @@ class Tooltip extends StatelessWidget {
     required this.animation,
   });
 
-  final String side;
+  final XliderSide side;
   final dynamic value;
   final double opacity;
   final Animation<Offset> animation;
@@ -37,7 +37,7 @@ class Tooltip extends StatelessWidget {
     Widget prefix;
     Widget suffix;
 
-    if (side == 'left') {
+    if (side == XliderSide.left) {
       prefix = tooltipHelperModel.tooltipData.leftPrefix ?? Container();
       suffix = tooltipHelperModel.tooltipData.leftSuffix ?? Container();
       if (!isRangeSlider) {
@@ -78,7 +78,7 @@ class Tooltip extends StatelessWidget {
       child: Center(
         child: FittedBox(
           child: Container(
-            key: (side == 'left') ? leftTooltipKey : rightTooltipKey,
+            key: (side == XliderSide.left) ? leftTooltipKey : rightTooltipKey,
             child: (customTooltip != null && customTooltip.custom != null)
                 ? customTooltip.custom!(value)
                 : Container(

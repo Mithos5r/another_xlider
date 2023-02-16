@@ -43,11 +43,14 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: EdgeInsets.all(50),
               child: Xlider(
                 xliderValues: XliderValues(
-                  values: XliderRangeValues(min: 0, max: 20),
+                  values: XliderRangeValues(
+                    min: 0,
+                    max: 50,
+                  ),
                   range: XliderRangeValues(min: 0, max: 50),
-                  distances: XliderRangeValues(min: 5),
                 ),
-
+                xliderHandlerConfiguration: XliderHandlerConfiguration(),
+                touchSize: 5,
               ),
             ),
 //             Container(

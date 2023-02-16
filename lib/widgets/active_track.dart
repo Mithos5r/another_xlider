@@ -17,7 +17,7 @@ class ActiveTrack extends StatelessWidget {
     required this.isRtl,
   });
 
-  final XliderTrackBar trackBar;
+  final XliderTrackBarConfiguration trackBar;
 
   final bool disabled;
   final double touchSize;
@@ -27,19 +27,18 @@ class ActiveTrack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    BoxDecoration boxDecoration =
-        trackBar.activeTrackBar ?? const BoxDecoration();
+    final BoxDecoration? boxDecoration = trackBar.activeTrackbar.decoration;
 
-    Color trackBarColor = boxDecoration.color ?? const Color(0xff2196F3);
+    Color trackBarColor = boxDecoration?.color ?? trackBar.activeTrackbar.color;
     if (disabled) {
-      trackBarColor = trackBar.activeDisabledTrackBarColor;
+      trackBarColor = trackBar.inactiveTrackBar.color;
     }
 
     double? top, bottom, left, right, width, height;
     top = left = width = height = 0;
     right = bottom = null;
     bottom = 0;
-    height = trackBar.activeTrackBarHeight;
+    height = trackBar.activeTrackbar.thickness;
     if (!isCenterOrigen || isRangeSlider) {
       width = handlerHelperModel.rightHandlerXPosition -
           handlerHelperModel.leftHandlerXPosition;
@@ -56,7 +55,7 @@ class ActiveTrack extends StatelessWidget {
       }
     } else {
       right = 0;
-      width = trackBar.activeTrackBarHeight;
+      width = trackBar.activeTrackbar.thickness;
 
       if (!isCenterOrigen || isRangeSlider) {
         height = handlerHelperModel.rightHandlerYPosition -
@@ -104,14 +103,15 @@ class ActiveTrack extends StatelessWidget {
           height: height,
           width: width,
           decoration: BoxDecoration(
-              color: trackBarColor,
-              backgroundBlendMode: boxDecoration.backgroundBlendMode,
-              shape: boxDecoration.shape,
-              gradient: boxDecoration.gradient,
-              border: boxDecoration.border,
-              borderRadius: boxDecoration.borderRadius,
-              boxShadow: boxDecoration.boxShadow,
-              image: boxDecoration.image),
+            color: trackBarColor,
+            backgroundBlendMode: boxDecoration?.backgroundBlendMode,
+            shape: boxDecoration?.shape ?? BoxShape.rectangle,
+            gradient: boxDecoration?.gradient,
+            border: boxDecoration?.border,
+            borderRadius: boxDecoration?.borderRadius,
+            boxShadow: boxDecoration?.boxShadow,
+            image: boxDecoration?.image,
+          ),
         ),
       ),
     );

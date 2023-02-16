@@ -10,7 +10,7 @@ class MakeHandler extends StatelessWidget {
   final XliderHandler? handlerData;
   final bool? visibleTouchArea;
   final Animation? animation;
-  final XliderHandlerSide? handlerSide;
+  final XliderSide? handlerSide;
   final bool rtl;
   final bool rangeSlider;
   final double? touchSize;
@@ -25,7 +25,7 @@ class MakeHandler extends StatelessWidget {
       this.animation,
       this.rtl = false,
       this.rangeSlider = false,
-      this.handlerSide = XliderHandlerSide.left,
+      this.handlerSide = XliderSide.left,
       this.touchSize})
       : super(key: key);
 
@@ -39,7 +39,7 @@ class MakeHandler extends StatelessWidget {
 
     XliderHandler handler = handlerData ?? const XliderHandler();
     Widget? child;
-    if (handlerSide == XliderHandlerSide.right) {
+    if (handlerSide == XliderSide.right) {
       child = const Icon(Icons.chevron_left, color: Colors.black45);
     } else {
       IconData hIcon = Icons.chevron_right;

@@ -12,7 +12,7 @@ class InactiveTrack extends StatelessWidget {
     required this.handlersPadding,
   });
 
-  final XliderTrackBar trackBar;
+  final XliderTrackBarConfiguration trackBar;
 
   final bool disabled;
   final ContainerHelperModel containerHelperModel;
@@ -21,21 +21,21 @@ class InactiveTrack extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final BoxDecoration boxDecoration =
-        trackBar.inactiveTrackBar ?? const BoxDecoration();
+        trackBar.inactiveTrackBar.decoration ?? const BoxDecoration();
 
     Color trackBarColor =
-        boxDecoration.color ?? const Color.fromARGB(17, 0, 0, 0);
+        boxDecoration.color ?? trackBar.inactiveTrackBar.color;
     if (disabled) {
-      trackBarColor = trackBar.inactiveDisabledTrackBarColor;
+      trackBarColor = trackBar.inactiveTrackBar.color;
     }
 
-    double? top, bottom, left, right, width, height;
-    top = left = right = width = height = 0;
+    double? top, bottom, left, width, height;
+    top = left = width = height = 0;
 
     bottom = 0;
     left = handlersPadding;
     width = containerHelperModel.containerWidthWithoutPadding;
-    height = trackBar.inactiveTrackBarHeight;
+    height = trackBar.inactiveTrackBar.thickness;
     top = 0;
 
     final Widget marked = Center(
