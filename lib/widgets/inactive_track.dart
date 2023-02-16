@@ -20,11 +20,10 @@ class InactiveTrack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final BoxDecoration boxDecoration =
-        trackBar.inactiveTrackBar.decoration ?? const BoxDecoration();
+    final BoxDecoration? boxDecoration = trackBar.inactiveTrackBar.decoration;
 
     Color trackBarColor =
-        boxDecoration.color ?? trackBar.inactiveTrackBar.color;
+        boxDecoration?.color ?? trackBar.inactiveTrackBar.color;
     if (disabled) {
       trackBarColor = trackBar.inactiveTrackBar.color;
     }
@@ -42,13 +41,13 @@ class InactiveTrack extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
             color: trackBarColor,
-            backgroundBlendMode: boxDecoration.backgroundBlendMode,
-            shape: boxDecoration.shape,
-            gradient: boxDecoration.gradient,
-            border: boxDecoration.border,
-            borderRadius: boxDecoration.borderRadius,
-            boxShadow: boxDecoration.boxShadow,
-            image: boxDecoration.image),
+            backgroundBlendMode: boxDecoration?.backgroundBlendMode,
+            shape: boxDecoration?.shape ?? BoxShape.rectangle,
+            gradient: boxDecoration?.gradient,
+            border: boxDecoration?.border,
+            borderRadius: boxDecoration?.borderRadius,
+            boxShadow: boxDecoration?.boxShadow,
+            image: boxDecoration?.image),
         child: SizedBox(
           height: height,
           width: width,
