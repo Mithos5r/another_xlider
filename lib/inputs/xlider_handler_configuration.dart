@@ -11,7 +11,7 @@ class XliderHandlerConfiguration {
   ///Set a Sizebox in top of the handler child widget with it
   final double height;
 
-  ///Block the transtion of the handlers
+  ///Block handlers and both will be move together
   final bool lock;
 
   final XliderHandler leftHandler;

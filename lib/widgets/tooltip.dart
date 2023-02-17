@@ -18,7 +18,7 @@ class Tooltip extends StatelessWidget {
   });
 
   final XliderSide side;
-  final dynamic value;
+  final double value;
   final double opacity;
   final Animation<Offset> animation;
   final TooltipHelperModel tooltipHelperModel;
@@ -28,26 +28,26 @@ class Tooltip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (tooltipHelperModel.tooltipData.disabled || value == '') {
-      return Positioned(
-        child: Container(),
-      );
+    if (tooltipHelperModel.tooltipData.disabled) {
+      return const SizedBox();
     }
 
-    Widget prefix;
-    Widget suffix;
+    Widget? prefix;
+    Widget? suffix;
 
     if (side == XliderSide.left) {
-      prefix = tooltipHelperModel.tooltipData.leftPrefix ?? Container();
-      suffix = tooltipHelperModel.tooltipData.leftSuffix ?? Container();
       if (!isRangeSlider) {
-        return Positioned(
-          child: Container(),
-        );
+        return const SizedBox();
       }
+      prefix =
+          tooltipHelperModel.tooltipData.decorations.leftComplements.prefix;
+      suffix =
+          tooltipHelperModel.tooltipData.decorations.leftComplements.suffix;
     } else {
-      prefix = tooltipHelperModel.tooltipData.rightPrefix ?? Container();
-      suffix = tooltipHelperModel.tooltipData.rightSuffix ?? Container();
+      prefix =
+          tooltipHelperModel.tooltipData.decorations.rightComplements.prefix;
+      suffix =
+          tooltipHelperModel.tooltipData.decorations.rightComplements.suffix;
     }
     String numberFormat = value.toString();
     if (tooltipHelperModel.tooltipData.format != null) {
@@ -55,9 +55,12 @@ class Tooltip extends StatelessWidget {
     }
 
     List<Widget> children = [
-      prefix,
-      Text(numberFormat, style: tooltipHelperModel.tooltipData.textStyle),
-      suffix,
+      if (prefix != null) prefix,
+      Text(
+        numberFormat,
+        style: tooltipHelperModel.tooltipData.decorations.textStyle,
+      ),
+      if (suffix != null) suffix,
     ];
 
     Widget tooltipHolderWidget = Column(
@@ -83,12 +86,12 @@ class Tooltip extends StatelessWidget {
                 ? customTooltip.custom!(value)
                 : Container(
                     padding: const EdgeInsets.all(8),
-                    decoration:
-                        tooltipHelperModel.tooltipData.boxStyle?.decoration,
+                    decoration: tooltipHelperModel
+                        .tooltipData.decorations.boxStyle?.decoration,
                     foregroundDecoration: tooltipHelperModel
-                        .tooltipData.boxStyle?.foregroundDecoration,
-                    transform:
-                        tooltipHelperModel.tooltipData.boxStyle?.transform,
+                        .tooltipData.decorations.boxStyle?.foregroundDecoration,
+                    transform: tooltipHelperModel
+                        .tooltipData.decorations.boxStyle?.transform,
                     child: tooltipHolderWidget,
                   ),
           ),
@@ -120,10 +123,6 @@ class Tooltip extends StatelessWidget {
       if (tooltipHelperModel.tooltipData.positionOffset!.right != null) {
         right = (right ?? 0) +
             tooltipHelperModel.tooltipData.positionOffset!.right!;
-      }
-      if (tooltipHelperModel.tooltipData.positionOffset!.bottom != null) {
-        bottom = (bottom ?? 0) +
-            tooltipHelperModel.tooltipData.positionOffset!.bottom!;
       }
     }
 

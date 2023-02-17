@@ -1,29 +1,30 @@
 part of xlider;
 
 class XliderTooltip {
-  final Widget Function(dynamic value)? custom;
+  final Widget Function(double value)? custom;
   final String Function(String value)? format;
-  final TextStyle? textStyle;
-  final XliderTooltipBox? boxStyle;
-  final Widget? leftPrefix;
-  final Widget? leftSuffix;
-  final Widget? rightPrefix;
-  final Widget? rightSuffix;
+
+  ///All decorations that will be on top of [custom]. It's possible to add prefix or suffix widgets
+  final XliderTooltipDecorations decorations;
+
+  ///Always will be display close to handler the tooltip. Dissable show animation
   final bool alwaysShowTooltip;
+
+  //If disabled is true. No tooltip will be show
   final bool disabled;
+
   final bool disableAnimation;
+
+  ///Where the tooltip it's showing
   final XliderTooltipDirection direction;
+
+  ///How much or less are for the current position
   final XliderTooltipPositionOffset? positionOffset;
 
   const XliderTooltip({
     this.custom,
     this.format,
-    this.textStyle,
-    this.boxStyle,
-    this.leftPrefix,
-    this.leftSuffix,
-    this.rightPrefix,
-    this.rightSuffix,
+    this.decorations = const XliderTooltipDecorations(),
     this.alwaysShowTooltip = false,
     this.disableAnimation = false,
     this.disabled = false,
@@ -33,18 +34,13 @@ class XliderTooltip {
 
   @override
   String toString() {
-    return '$textStyle-$boxStyle-$leftPrefix-$leftSuffix-$rightPrefix-$rightSuffix-$alwaysShowTooltip-$disabled-$disableAnimation-$direction-$positionOffset';
+    return 'XliderTooltip(custom: $custom, format: $format, decorations: $decorations, alwaysShowTooltip: $alwaysShowTooltip, disabled: $disabled, disableAnimation: $disableAnimation, direction: $direction, positionOffset: $positionOffset)';
   }
 
   XliderTooltip copyWith({
-    Widget Function(dynamic value)? custom,
+    Widget Function(double value)? custom,
     String Function(String value)? format,
-    TextStyle? textStyle,
-    XliderTooltipBox? boxStyle,
-    Widget? leftPrefix,
-    Widget? leftSuffix,
-    Widget? rightPrefix,
-    Widget? rightSuffix,
+    XliderTooltipDecorations? decorations,
     bool? alwaysShowTooltip,
     bool? disabled,
     bool? disableAnimation,
@@ -54,12 +50,7 @@ class XliderTooltip {
     return XliderTooltip(
       custom: custom ?? this.custom,
       format: format ?? this.format,
-      textStyle: textStyle ?? this.textStyle,
-      boxStyle: boxStyle ?? this.boxStyle,
-      leftPrefix: leftPrefix ?? this.leftPrefix,
-      leftSuffix: leftSuffix ?? this.leftSuffix,
-      rightPrefix: rightPrefix ?? this.rightPrefix,
-      rightSuffix: rightSuffix ?? this.rightSuffix,
+      decorations: decorations ?? this.decorations,
       alwaysShowTooltip: alwaysShowTooltip ?? this.alwaysShowTooltip,
       disabled: disabled ?? this.disabled,
       disableAnimation: disableAnimation ?? this.disableAnimation,
@@ -74,12 +65,7 @@ class XliderTooltip {
 
     return other.custom == custom &&
         other.format == format &&
-        other.textStyle == textStyle &&
-        other.boxStyle == boxStyle &&
-        other.leftPrefix == leftPrefix &&
-        other.leftSuffix == leftSuffix &&
-        other.rightPrefix == rightPrefix &&
-        other.rightSuffix == rightSuffix &&
+        other.decorations == decorations &&
         other.alwaysShowTooltip == alwaysShowTooltip &&
         other.disabled == disabled &&
         other.disableAnimation == disableAnimation &&
@@ -91,12 +77,7 @@ class XliderTooltip {
   int get hashCode {
     return custom.hashCode ^
         format.hashCode ^
-        textStyle.hashCode ^
-        boxStyle.hashCode ^
-        leftPrefix.hashCode ^
-        leftSuffix.hashCode ^
-        rightPrefix.hashCode ^
-        rightSuffix.hashCode ^
+        decorations.hashCode ^
         alwaysShowTooltip.hashCode ^
         disabled.hashCode ^
         disableAnimation.hashCode ^

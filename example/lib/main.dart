@@ -45,12 +45,21 @@ class _MyHomePageState extends State<MyHomePage> {
                 xliderValues: XliderValues(
                   values: XliderRangeValues(
                     min: 0,
-                    max: 50,
                   ),
                   range: XliderRangeValues(min: 0, max: 50),
                 ),
                 xliderHandlerConfiguration: XliderHandlerConfiguration(),
                 touchSize: 5,
+                selectByTap: false,
+                tooltip: XliderTooltip(
+                    direction: XliderTooltipDirection.top,
+                    decorations: XliderTooltipDecorations(
+                        rightComplements: XliderTooltipComplements(
+                            suffix: Container(
+                      height: 50,
+                      width: 50,
+                      color: Colors.red,
+                    )))),
               ),
             ),
 //             Container(

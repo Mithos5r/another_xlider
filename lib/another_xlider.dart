@@ -23,6 +23,8 @@ part 'decorators/hatch/xlider_hatch_mark_aligment.dart';
 part 'decorators/hatch/xlider_hatch_mark_label.dart';
 part 'decorators/tooltip/xlider_tooltip.dart';
 part 'decorators/tooltip/xlider_tooltip_box.dart';
+part 'decorators/tooltip/xlider_tooltip_complements.dart';
+part 'decorators/tooltip/xlider_tooltip_decorations.dart';
 part 'decorators/tooltip/xlider_tooltip_position_offset.dart';
 part 'decorators/track_bar/xlider_track_bar.dart';
 part 'decorators/track_bar/xlider_track_bar_configuration.dart';
@@ -82,7 +84,8 @@ class Xlider extends StatefulWidget {
   final bool startAtRight;
   final bool jump;
 
-  ///If true. It's possible to tap in the slider and set the values
+  ///If true it's possible to tap in the slider and set the values. If it's false
+  ///trackbar slider it's possible.
   final bool selectByTap;
   final List<XliderIgnoreSteps> ignoreSteps;
 
@@ -433,6 +436,9 @@ class XliderState extends State<Xlider>
     _widgetMax = widget.xliderValues?.range?.max;
     _widgetMin = widget.xliderValues?.range?.min;
 
+    _tooltipHelperModel =
+        _tooltipHelperModel.copyWith(tooltipData: widget.tooltip);
+
     _ignoreSteps = [];
 
     if (widget.xliderValues?.fixedValues != null &&
@@ -556,7 +562,7 @@ class XliderState extends State<Xlider>
     _outputUpperValue = _displayRealValue(_upperValue);
     _outputLowerValue = _displayRealValue(_lowerValue);
 
-    if (widget.startAtRight == true) {
+    if (widget.startAtRight) {
       _outputLowerValue = _displayRealValue(_upperValue);
       _outputUpperValue = _displayRealValue(_lowerValue);
 
@@ -725,7 +731,7 @@ class XliderState extends State<Xlider>
     );
     if (widget.xliderHandlerConfiguration.lock ||
         lockedHandlersDragOffset > 0) {
-      _lockedHandlers('leftHandler');
+      _lockedHandlers(XliderSide.left);
     }
     setState(() {});
 
@@ -795,14 +801,22 @@ class XliderState extends State<Xlider>
     _updateLowerValue(_lowerValue);
   }
 
-  void _lockedHandlers(handler) {
+  ///It's possible to move handler together.
+  ///
+  ///If [widget.selectByTap] is active don't do anything because handler update for tap
+  ///will be done.
+  void _lockedHandlers(XliderSide handler) {
+    if (widget.selectByTap) {
+      return;
+    }
+
     double? distanceOfTwoHandlers = getLengthByValue(_handlersDistance);
 
     double? leftHandlerPos, rightHandlerPos;
     leftHandlerPos = _handlerHelperModel.leftHandlerXPosition;
     rightHandlerPos = _handlerHelperModel.rightHandlerXPosition;
 
-    if (handler == 'rightHandler') {
+    if (handler == XliderSide.right) {
       _lowerValue = _upperValue - _handlersDistance;
       leftHandlerPos = rightHandlerPos - distanceOfTwoHandlers!;
       if (getValueByPositionIgnoreOffset(__axisPosTmp!) - _handlersDistance <
@@ -832,7 +846,7 @@ class XliderState extends State<Xlider>
     _updateLowerValue(_lowerValue);
   }
 
-  void _updateLowerValue(value) {
+  void _updateLowerValue(double value) {
     _outputLowerValue = _displayRealValue(value);
     if (widget.startAtRight == true) {
       _outputLowerValue = _displayRealValue(_realMax - value);
@@ -961,7 +975,7 @@ class XliderState extends State<Xlider>
         rightHandlerXPosition: __rightHandlerPosition);
 
     if (widget.xliderHandlerConfiguration.lock) {
-      _lockedHandlers('rightHandler');
+      _lockedHandlers(XliderSide.right);
     }
 
     setState(() {});
@@ -1092,7 +1106,7 @@ class XliderState extends State<Xlider>
     _updateUpperValue(_upperValue);
   }
 
-  void _updateUpperValue(value) {
+  void _updateUpperValue(double value) {
     _outputUpperValue = _displayRealValue(value);
     if (widget.startAtRight == true) {
       _outputUpperValue = _displayRealValue(_realMax - value);
@@ -1180,7 +1194,7 @@ class XliderState extends State<Xlider>
 
           if (!_tooltipHelperModel.tooltipData.disabled &&
               _tooltipHelperModel.tooltipData.alwaysShowTooltip == false) {
-            _tooltipHelperModel.startLeftAnimation(
+            _tooltipHelperModel = _tooltipHelperModel.startLeftAnimation(
                 lockHandlers: widget.xliderHandlerConfiguration.lock);
           }
 
@@ -1254,12 +1268,6 @@ class XliderState extends State<Xlider>
         onPointerMove: (_) {
           __dragging = true;
 
-          if (!_tooltipHelperModel.tooltipData.disabled &&
-              _tooltipHelperModel.tooltipData.alwaysShowTooltip == false) {
-            _tooltipHelperModel = _tooltipHelperModel.copyWith(
-              rightTooltipOpacity: 1,
-            );
-          }
           _rightHandlerMove(_);
         },
         onPointerDown: (_) {
@@ -1420,7 +1428,7 @@ class XliderState extends State<Xlider>
               __dragging = true;
 
               if (_slidingByActiveTrackBar) {
-                _trackBarSlideCallDragStated(0);
+                _trackBarSlideCallDragStated(XliderSide.left);
                 _leftHandlerMove(_,
                     lockedHandlersDragOffset: __lockedHandlersDragOffset);
               } else {
@@ -1428,7 +1436,7 @@ class XliderState extends State<Xlider>
 
                 if (widget.rangeSlider) {
                   if (_leftTapAndSlide) {
-                    _trackBarSlideCallDragStated(0);
+                    _trackBarSlideCallDragStated(XliderSide.left);
                     if (!_tooltipHelperModel.tooltipData.disabled &&
                         _tooltipHelperModel.tooltipData.alwaysShowTooltip ==
                             false) {
@@ -1438,7 +1446,7 @@ class XliderState extends State<Xlider>
                     _leftHandlerMove(_,
                         tappedPositionWithPadding: tappedPositionWithPadding);
                   } else {
-                    _trackBarSlideCallDragStated(1);
+                    _trackBarSlideCallDragStated(XliderSide.right);
                     if (!_tooltipHelperModel.tooltipData.disabled &&
                         _tooltipHelperModel.tooltipData.alwaysShowTooltip ==
                             false) {
@@ -1449,7 +1457,7 @@ class XliderState extends State<Xlider>
                         tappedPositionWithPadding: tappedPositionWithPadding);
                   }
                 } else {
-                  _trackBarSlideCallDragStated(1);
+                  _trackBarSlideCallDragStated(XliderSide.right);
                   if (!_tooltipHelperModel.tooltipData.disabled &&
                       _tooltipHelperModel.tooltipData.alwaysShowTooltip ==
                           false) {
@@ -1554,7 +1562,7 @@ class XliderState extends State<Xlider>
     return items;
   }
 
-  _trackBarSlideCallDragStated(handlerIndex) {
+  _trackBarSlideCallDragStated(XliderSide handlerIndex) {
     if (!_trackBarSlideOnDragStartedCalled) {
       _callbacks(XliderDragFunction.onDragStarted, handlerIndex);
       _trackBarSlideOnDragStartedCalled = true;

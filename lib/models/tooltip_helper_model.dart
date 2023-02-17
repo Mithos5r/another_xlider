@@ -1,4 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/widgets.dart';
 
 import '../another_xlider.dart';
@@ -52,10 +51,10 @@ class TooltipHelperModel {
     return refresh;
   }
 
-    TooltipHelperModel startRightAnimation({required bool lockHandlers}) {
+  TooltipHelperModel startRightAnimation({required bool lockHandlers}) {
     final refresh = copyWith(
-        leftTooltipOpacity:  lockHandlers ? 1 : null, rightTooltipOpacity: 1);
-    refresh. rightTooltipAnimationController ?.forward();
+        leftTooltipOpacity: lockHandlers ? 1 : null, rightTooltipOpacity: 1);
+    refresh.rightTooltipAnimationController?.forward();
 
     if (lockHandlers) {
       refresh.leftTooltipAnimationController?.forward();
