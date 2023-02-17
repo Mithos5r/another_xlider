@@ -1,5 +1,5 @@
-name: another_xlider
-description: (Another Xlider) A material design slider and range slider, horizontal and vertical, with RTL support and lots of options and customizations for flutter
+name: xlider
+description: xlider for elementary
 version: 1.1.2
 homepage: https://github.com/loonix/another_xlider
 

@@ -15,19 +15,19 @@ class XliderHatchMark {
   final XliderHatchMarkAlignment linesAlignment;
   final bool? displayLines;
 
-  XliderHatchMark(
-      {this.disabled = false,
-      this.density = 1,
-      this.smallDensity = 4,
-      this.linesDistanceFromTrackBar,
-      this.labelsDistanceFromTrackBar,
-      this.labels,
-      this.smallLine,
-      this.bigLine,
-      this.linesAlignment = XliderHatchMarkAlignment.right,
-      this.labelBox,
-      this.displayLines})
-      : assert(density > 0 && density <= 2),
+  XliderHatchMark({
+    this.disabled = false,
+    this.density = 1,
+    this.smallDensity = 4,
+    this.linesDistanceFromTrackBar,
+    this.labelsDistanceFromTrackBar,
+    this.labels,
+    this.smallLine,
+    this.bigLine,
+    this.linesAlignment = XliderHatchMarkAlignment.right,
+    this.labelBox,
+    this.displayLines,
+  })  : assert(density > 0 && density <= 2),
         assert(smallDensity >= 0);
 
   @override
@@ -35,14 +35,13 @@ class XliderHatchMark {
     return 'XliderHatchMark(disabled: $disabled, density: $density, linesDistanceFromTrackBar: $linesDistanceFromTrackBar, labelsDistanceFromTrackBar: $labelsDistanceFromTrackBar, labels: $labels, smallLine: $smallLine, bigLine: $bigLine, smallDensity: $smallDensity, labelBox: $labelBox, displayLines: $displayLines)';
   }
 
-  XliderHatchMark defaults({
-    XliderSizedBox? smallLine,
-    XliderSizedBox? bigLine,
-    double? linesDistanceFromTrackBar,
-    double? labelsDistanceFromTrackBar,
-    XliderSizedBox? labelBox,
-    bool? displayLines
-  }) =>
+  XliderHatchMark defaults(
+          {XliderSizedBox? smallLine,
+          XliderSizedBox? bigLine,
+          double? linesDistanceFromTrackBar,
+          double? labelsDistanceFromTrackBar,
+          XliderSizedBox? labelBox,
+          bool? displayLines}) =>
       XliderHatchMark(
         smallLine: smallLine ??
             const XliderSizedBox(

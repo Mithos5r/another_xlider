@@ -3,21 +3,19 @@ library xlider;
 
 import 'dart:math';
 
-import 'package:another_xlider/models/hatch_mark_helper_modal.dart';
-import 'package:another_xlider/widgets/active_track.dart';
-import 'package:another_xlider/widgets/inactive_track.dart';
-import 'package:another_xlider/widgets/tooltip.dart';
-import 'package:another_xlider/xlider_drag_function.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show Colors, Icons;
 import 'package:flutter/widgets.dart';
+import 'package:xlider/models/hatch_mark_helper_modal.dart';
+import 'package:xlider/widgets/active_track.dart';
+import 'package:xlider/widgets/inactive_track.dart';
+import 'package:xlider/widgets/tooltip.dart';
+import 'package:xlider/xlider_drag_function.dart';
 
 import 'models/container_helper_model.dart';
 import 'models/handler_helper_model.dart';
 import 'models/tooltip_helper_model.dart';
 
-part 'another_xlider_hatch_mark_helper.dart';
-part 'another_xlider_helper.dart';
 part 'decorators/hatch/xlider_hatch_mark.dart';
 part 'decorators/hatch/xlider_hatch_mark_aligment.dart';
 part 'decorators/hatch/xlider_hatch_mark_label.dart';
@@ -39,18 +37,10 @@ part 'inputs/xlider_handler_configuration.dart';
 part 'inputs/xlider_range_values.dart';
 part 'inputs/xlider_step.dart';
 part 'inputs/xlider_values.dart';
+part 'xlider_hatch_mark_helper.dart';
+part 'xlider_helper.dart';
 part 'xlider_side.dart';
 part 'xlider_tooltip_direction.dart';
-
-/*
-* *
-* * Written by Ali Azmoude <ali.azmoude@gmail.com>
-* *
-* *
-* *
-* * When I wrote this, only God and I understood what I was doing.
-* * Now, God only knows "Karl Weierstrass"
-* */
 
 class Xlider extends StatefulWidget {
   ///Initial values for slider.
@@ -82,7 +72,9 @@ class Xlider extends StatefulWidget {
 
   ///It's will be true if [sliderDirection.right]
   final bool startAtRight;
-  final bool jump;
+
+  ///If [step] are active. Slider will be magnet by the step
+  final bool isMagnetic;
 
   ///If true it's possible to tap in the slider and set the values. If it's false
   ///trackbar slider it's possible.
@@ -98,8 +90,16 @@ class Xlider extends StatefulWidget {
   ///Show the touchable area of the handlers
   final bool visibleTouchArea;
 
+  ///Tooltip information about how and where must be show and interact
   final XliderTooltip? tooltip;
+
+  ///All information about trackbar configuration.
+  /// * Colors
+  /// * Tickness
+  /// * And central widget
   final XliderTrackBarConfiguration trackBar;
+
+  ///Alows to divide the slider in diferents steps
   final XliderStep step;
   final XliderHatchMark? hatchMark;
   final bool centeredOrigin;
@@ -114,7 +114,7 @@ class Xlider extends StatefulWidget {
     this.onDragCompleted,
     this.onDragging,
     this.sliderDirection = XliderSide.left,
-    this.jump = false,
+    this.isMagnetic = false,
     this.ignoreSteps = const [],
     this.disabled = false,
     this.touchSize = 15,
@@ -132,19 +132,19 @@ class Xlider extends StatefulWidget {
         assert((ignoreSteps.isNotEmpty && step.rangeList == null) ||
             (ignoreSteps.isEmpty)),
         assert((step.rangeList != null &&
-                xliderValues?.distances?.min == 0 &&
-                xliderValues?.distances?.max == 0) ||
+                xliderValues?.distances?.min == null &&
+                xliderValues?.distances?.max == null) ||
             ((xliderValues?.distances?.min ?? 0) > 0 &&
                 step.rangeList == null) ||
             ((xliderValues?.distances?.max ?? 0) > 0 &&
                 step.rangeList == null) ||
             (step.rangeList == null)),
-        assert(centeredOrigin == false ||
-            (centeredOrigin == true &&
+        assert(!centeredOrigin ||
+            (centeredOrigin &&
                 !(xliderValues?.values?.isComplete ?? false) &&
                 xliderHandlerConfiguration.lock == false &&
-                (xliderValues?.distances?.min ?? 0) == 0 &&
-                (xliderValues?.distances?.max ?? 0) == 0)),
+                (xliderValues?.distances?.min) == null &&
+                (xliderValues?.distances?.max) == null)),
         assert(!xliderHandlerConfiguration.lock ||
             (!centeredOrigin &&
                 (ignoreSteps.isEmpty) &&
@@ -667,7 +667,7 @@ class XliderState extends State<Xlider>
     }
 
     double? tS = widget.touchSize;
-    if (widget.jump) {
+    if (widget.isMagnetic) {
       tS = widget.touchSize + _handlerHelperModel.handlersPadding;
     }
 
@@ -690,7 +690,7 @@ class XliderState extends State<Xlider>
 
       if (tmpLowerValue > _upperValue) tmpLowerValue = _upperValue;
 
-      if (widget.jump) {
+      if (widget.isMagnetic) {
         if (!forcePosStop) {
           _lowerValue = tmpLowerValue;
           _leftHandlerMoveBetweenSteps(
@@ -911,7 +911,7 @@ class XliderState extends State<Xlider>
 
     double? tS = widget.touchSize;
     double rM = _handlerHelperModel.handlersPadding;
-    if (widget.jump) {
+    if (widget.isMagnetic) {
       rM = -_handlerHelperModel.handlersWidth;
       tS = -widget.touchSize;
     }
@@ -935,7 +935,7 @@ class XliderState extends State<Xlider>
 
       if (tmpUpperValue < _lowerValue) tmpUpperValue = _lowerValue;
 
-      if (widget.jump == true) {
+      if (widget.isMagnetic == true) {
         if (!forcePosStop) {
           _upperValue = tmpUpperValue;
           _rightHandlerMoveBetweenSteps(
@@ -1208,7 +1208,7 @@ class XliderState extends State<Xlider>
           __dragging = false;
 
           _handlerHelperModel = _handlerHelperModel.adjustLeftHandlerPosition(
-            jump: !widget.jump,
+            jump: !widget.isMagnetic,
             lowerPositionValue: getPositionByValue(_lowerValue),
             posititonValue: getPositionByValue(_lowerValue + _handlersDistance),
             lockHandlers: widget.xliderHandlerConfiguration.lock,
@@ -1308,7 +1308,7 @@ class XliderState extends State<Xlider>
           __dragging = false;
 
           _handlerHelperModel = _handlerHelperModel.adjustRightHandlerPosition(
-            jump: widget.jump,
+            jump: widget.isMagnetic,
             upperPositionValue: getPositionByValue(_upperValue),
             posititonValue: getPositionByValue(_upperValue - _handlersDistance),
             lockHandlers: widget.xliderHandlerConfiguration.lock,

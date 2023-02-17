@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../another_xlider.dart';
+import '../xlider.dart';
 import '../models/tooltip_helper_model.dart';
 
 class Tooltip extends StatelessWidget {

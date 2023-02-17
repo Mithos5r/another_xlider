@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../another_xlider.dart';
+import '../xlider.dart';
 import '../models/container_helper_model.dart';
 import '../models/handler_helper_model.dart';
 

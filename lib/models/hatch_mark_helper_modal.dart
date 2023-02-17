@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../another_xlider.dart';
+import '../xlider.dart';
 
 class HatchMarkHelperModal {
   HatchMarkHelperModal({

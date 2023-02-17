@@ -1,8 +1,22 @@
 part of xlider;
 
 class XliderStep {
+  ///Set the step for the slider.
+  ///
+  ///If [rangeList] is not empty then take the value of the range list. If only
+  ///have one element this will be the step for the slider.
   final double step;
+
+  ///Set to true if you whan to express the value of [rangeList] has percentaje
+  ///
+  ///* XliderRangeStep(from: 0, to: 20, step: 10000)
+  ///
+  ///There will be move from 0 to  20%
   final bool isPercentRange;
+
+  ///Alows to divide the slider in diferents part with diferents steps.
+  ///
+  ///If only have one step then the inner step will be use for all the slider.
   final List<XliderRangeStep>? rangeList;
 
   const XliderStep({
@@ -11,23 +25,22 @@ class XliderStep {
     this.rangeList,
   });
 
-
-
   @override
-  String toString() => 'XliderStep(step: $step, isPercentRange: $isPercentRange, rangeList: $rangeList)';
+  String toString() =>
+      'XliderStep(step: $step, isPercentRange: $isPercentRange, rangeList: $rangeList)';
 
   @override
   bool operator ==(covariant XliderStep other) {
     if (identical(this, other)) return true;
-  
-    return 
-      other.step == step &&
-      other.isPercentRange == isPercentRange &&
-      listEquals(other.rangeList, rangeList);
+
+    return other.step == step &&
+        other.isPercentRange == isPercentRange &&
+        listEquals(other.rangeList, rangeList);
   }
 
   @override
-  int get hashCode => step.hashCode ^ isPercentRange.hashCode ^ rangeList.hashCode;
+  int get hashCode =>
+      step.hashCode ^ isPercentRange.hashCode ^ rangeList.hashCode;
 
   XliderStep copyWith({
     double? step,
@@ -53,8 +66,6 @@ class XliderRangeStep {
     this.step,
   }) : assert(from != null && to != null && step != null);
 
-
-
   @override
   String toString() => 'XliderRangeStep(from: $from, to: $to, step: $step)';
 
@@ -73,11 +84,8 @@ class XliderRangeStep {
   @override
   bool operator ==(covariant XliderRangeStep other) {
     if (identical(this, other)) return true;
-  
-    return 
-      other.from == from &&
-      other.to == to &&
-      other.step == step;
+
+    return other.from == from && other.to == to && other.step == step;
   }
 
   @override

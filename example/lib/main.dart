@@ -1,5 +1,5 @@
-import 'package:another_xlider/another_xlider.dart';
 import 'package:flutter/material.dart';
+import 'package:xlider/xlider.dart';
 
 void main() => runApp(MyApp());
 
@@ -43,23 +43,39 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: EdgeInsets.all(50),
               child: Xlider(
                 xliderValues: XliderValues(
-                  values: XliderRangeValues(
-                    min: 0,
-                  ),
-                  range: XliderRangeValues(min: 0, max: 50),
+                  values: XliderRangeValues(min: 50),
+                  range: XliderRangeValues(min: 0, max: 100),
                 ),
                 xliderHandlerConfiguration: XliderHandlerConfiguration(),
                 touchSize: 5,
                 selectByTap: false,
+                centeredOrigin: true,
+                isMagnetic: true,
+                trackBar: XliderTrackBarConfiguration(
+                  activeTrackbar: XliderTrackBar(
+                    thickness: 3.5,
+                    color: Colors.red,
+                    decoration: BoxDecoration(
+                      color: Colors.purple,
+                    ),
+                  ),
+                ),
+                step: XliderStep(step: 10, isPercentRange: true, rangeList: [
+                  XliderRangeStep(from: 0, to: 20, step: 10),
+                  XliderRangeStep(from: 20, to: 50, step: 5),
+                ]),
                 tooltip: XliderTooltip(
-                    direction: XliderTooltipDirection.top,
-                    decorations: XliderTooltipDecorations(
-                        rightComplements: XliderTooltipComplements(
-                            suffix: Container(
-                      height: 50,
-                      width: 50,
-                      color: Colors.red,
-                    )))),
+                  direction: XliderTooltipDirection.top,
+                  decorations: XliderTooltipDecorations(
+                    rightComplements: XliderTooltipComplements(
+                      suffix: Container(
+                        height: 50,
+                        width: 50,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
 //             Container(

@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../another_xlider.dart';
+import '../xlider.dart';
 import '../widgets/make_handler.dart';
 
 class HandlerHelperModel {
