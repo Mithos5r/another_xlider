@@ -38,45 +38,40 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 50),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Xlider(
-              xliderValues: XliderValues(
-                values: XliderRangeValues(min: 50),
-                range: XliderRangeValues(min: 0, max: 100),
+        child: Xlider(
+          xliderValues: XliderValues(
+            values: XliderRangeValues(min: 50),
+            range: XliderRangeValues(min: 0, max: 100),
+          ),
+          xliderHandlerConfiguration: XliderHandlerConfiguration(),
+          touchSize: 5,
+          selectByTap: false,
+          isMagnetic: true,
+          trackBar: XliderTrackBarConfiguration(
+            activeTrackbar: XliderTrackBar(
+              thickness: 3.5,
+              color: Colors.red,
+              decoration: BoxDecoration(
+                color: Colors.purple,
               ),
-              xliderHandlerConfiguration: XliderHandlerConfiguration(),
-              touchSize: 5,
-              selectByTap: false,
-              isMagnetic: true,
-              trackBar: XliderTrackBarConfiguration(
-                activeTrackbar: XliderTrackBar(
-                  thickness: 3.5,
+            ),
+          ),
+          step: XliderStep(step: 10, isPercentRange: true, rangeList: [
+            XliderRangeStep(from: 0, to: 20, step: 10),
+            XliderRangeStep(from: 20, to: 50, step: 5),
+          ]),
+          tooltip: XliderTooltip(
+            direction: XliderTooltipDirection.top,
+            decorations: XliderTooltipDecorations(
+              rightComplements: XliderTooltipComplements(
+                suffix: Container(
+                  height: 50,
+                  width: 50,
                   color: Colors.red,
-                  decoration: BoxDecoration(
-                    color: Colors.purple,
-                  ),
-                ),
-              ),
-              step: XliderStep(step: 10, isPercentRange: true, rangeList: [
-                XliderRangeStep(from: 0, to: 20, step: 10),
-                XliderRangeStep(from: 20, to: 50, step: 5),
-              ]),
-              tooltip: XliderTooltip(
-                direction: XliderTooltipDirection.top,
-                decorations: XliderTooltipDecorations(
-                  rightComplements: XliderTooltipComplements(
-                    suffix: Container(
-                      height: 50,
-                      width: 50,
-                      color: Colors.red,
-                    ),
-                  ),
                 ),
               ),
             ),
-          ],
+          ),
         ),
       ),
       //       SingleChildScrollView(
