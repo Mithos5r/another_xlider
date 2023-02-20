@@ -53,24 +53,27 @@ class Xlider extends StatefulWidget {
   final XliderHandlerConfiguration xliderHandlerConfiguration;
 
   ///Callback when drag started
-  final Function(XliderSide handlerIndex, double lowerValue, double upperValue)?
+  final void Function(
+          XliderSide handlerIndex, double lowerValue, double upperValue)?
       onDragStarted;
 
   ///Callback when user drop handler focus
-  final Function(XliderSide handlerIndex, double lowerValue, double upperValue)?
+  final void Function(
+          XliderSide handlerIndex, double lowerValue, double upperValue)?
       onDragCompleted;
 
   ///Callback action when user is dragging
-  final Function(XliderSide handlerIndex, double lowerValue, double upperValue)?
+  final void Function(
+          XliderSide handlerIndex, double lowerValue, double upperValue)?
       onDragging;
 
   ///It's will be false if [xliderValues.values] is not complete
   final bool rangeSlider;
 
   ///Change slider direction
-  final XliderSide sliderDirection;
+  final XliderSide sliderStartSide;
 
-  ///It's will be true if [sliderDirection.right]
+  ///It's will be true if [sliderStartSide.right]
   final bool startAtRight;
 
   ///If [step] are active. Slider will be magnet by the step
@@ -113,7 +116,7 @@ class Xlider extends StatefulWidget {
     this.onDragStarted,
     this.onDragCompleted,
     this.onDragging,
-    this.sliderDirection = XliderSide.left,
+    this.sliderStartSide = XliderSide.left,
     this.isMagnetic = false,
     this.ignoreSteps = const [],
     this.disabled = false,
@@ -127,7 +130,7 @@ class Xlider extends StatefulWidget {
     this.centeredOrigin = false,
     this.decorations = const XliderDecorations(),
   })  : rangeSlider = xliderValues?.values?.isComplete ?? false,
-        startAtRight = sliderDirection == XliderSide.right,
+        startAtRight = sliderStartSide == XliderSide.right,
         assert((touchSize >= 5 && touchSize <= 50)),
         assert((ignoreSteps.isNotEmpty && step.rangeList == null) ||
             (ignoreSteps.isEmpty)),
