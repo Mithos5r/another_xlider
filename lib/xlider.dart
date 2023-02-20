@@ -253,62 +253,70 @@ class XliderState extends State<Xlider>
 
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(
-      builder: (context, orientation) {
-        return LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-          oldOrientation ??= MediaQuery.of(context).orientation;
-          final double sliderProperSize = findProperSliderSize(
-            activeTrackBarHeight: widget.trackBar.activeTrackbar.thickness,
-            inactiveTrackBarHeight: widget.trackBar.inactiveTrackBar.thickness,
-            handlersHeight: _handlerHelperModel.handlersHeight,
-            handlersWidth: _handlerHelperModel.handlersWidth,
-          );
-          _containerHelperModel =
-              _containerHelperModel.setConstraintsAndContainer(
-            constraintWidth: constraints.maxWidth,
-            constraintHeight: constraints.maxHeight,
-            handlersHeight: _handlerHelperModel.handlersHeight,
-            handlersWidth: _handlerHelperModel.handlersWidth,
-            sliderProperSize: sliderProperSize,
-          );
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        OrientationBuilder(
+          builder: (context, orientation) {
+            return LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+              oldOrientation ??= MediaQuery.of(context).orientation;
+              final double sliderProperSize = findProperSliderSize(
+                activeTrackBarHeight: widget.trackBar.activeTrackbar.thickness,
+                inactiveTrackBarHeight:
+                    widget.trackBar.inactiveTrackBar.thickness,
+                handlersHeight: _handlerHelperModel.handlersHeight,
+                handlersWidth: _handlerHelperModel.handlersWidth,
+              );
+              _containerHelperModel =
+                  _containerHelperModel.setConstraintsAndContainer(
+                constraintWidth: constraints.maxWidth,
+                constraintHeight: constraints.maxHeight,
+                handlersHeight: _handlerHelperModel.handlersHeight,
+                handlersWidth: _handlerHelperModel.handlersWidth,
+                sliderProperSize: sliderProperSize,
+              );
 
-          if (MediaQuery.of(context).orientation != oldOrientation) {
-            _handlerHelperModel = _handlerHelperModel.resetHandlerPositions();
+              if (MediaQuery.of(context).orientation != oldOrientation) {
+                _handlerHelperModel =
+                    _handlerHelperModel.resetHandlerPositions();
 
-            _containerHelperModel =
-                _containerHelperModel.renderBoxInitialization(
-              screenSize: MediaQuery.of(context).size,
-              containerKey: containerKey,
-            );
+                _containerHelperModel =
+                    _containerHelperModel.renderBoxInitialization(
+                  screenSize: MediaQuery.of(context).size,
+                  containerKey: containerKey,
+                );
 
-            _handlerHelperModel = _handlerHelperModel.arrangeHandlersPosition(
-              dragging: __dragging,
-              lowerPositionByValue: getPositionByValue(_lowerValue),
-              upperPositionByValue: getPositionByValue(_upperValue),
-            );
+                _handlerHelperModel =
+                    _handlerHelperModel.arrangeHandlersPosition(
+                  dragging: __dragging,
+                  lowerPositionByValue: getPositionByValue(_lowerValue),
+                  upperPositionByValue: getPositionByValue(_upperValue),
+                );
 
-            _drawHatchMark();
+                _drawHatchMark();
 
-            oldOrientation = MediaQuery.of(context).orientation;
-          }
+                oldOrientation = MediaQuery.of(context).orientation;
+              }
 
-          return ClipRRect(
-            clipBehavior: Clip.none,
-            child: Container(
-              key: containerKey,
-              height: _containerHelperModel.containerHeight,
-              width: _containerHelperModel.containerWidth,
-              foregroundDecoration: widget.decorations.foregroundDecoration,
-              decoration: widget.decorations.backgroundDecoration,
-              child: Stack(
+              return ClipRRect(
                 clipBehavior: Clip.none,
-                children: drawHandlers(),
-              ),
-            ),
-          );
-        });
-      },
+                child: Container(
+                  key: containerKey,
+                  height: _containerHelperModel.containerHeight,
+                  width: _containerHelperModel.containerWidth,
+                  foregroundDecoration: widget.decorations.foregroundDecoration,
+                  decoration: widget.decorations.backgroundDecoration,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: drawHandlers(),
+                  ),
+                ),
+              );
+            });
+          },
+        ),
+      ],
     );
   }
 
