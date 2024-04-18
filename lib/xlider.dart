@@ -4,7 +4,7 @@ library xlider;
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' show Colors, Icons;
+import 'package:flutter/material.dart' show Colors;
 import 'package:flutter/widgets.dart';
 import 'package:xlider/models/hatch_mark_helper_modal.dart';
 import 'package:xlider/widgets/active_track.dart';
@@ -110,7 +110,7 @@ class Xlider extends StatefulWidget {
   final XliderDecorations decorations;
 
   Xlider({
-    Key? key,
+    super.key,
     this.xliderValues,
     this.xliderHandlerConfiguration = const XliderHandlerConfiguration(),
     this.onDragStarted,
@@ -161,8 +161,7 @@ class Xlider extends StatefulWidget {
             (xliderValues?.values?.isComplete ?? false) == false ||
                 ((xliderValues?.values?.isComplete ?? false) == true &&
                     (xliderValues?.values?.isComplete ?? false)),
-            "Range slider needs two values"),
-        super(key: key);
+            "Range slider needs two values");
 
   @override
   XliderState createState() => XliderState();

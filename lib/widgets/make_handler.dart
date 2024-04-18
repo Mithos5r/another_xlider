@@ -16,7 +16,7 @@ class MakeHandler extends StatelessWidget {
   final double? touchSize;
 
   const MakeHandler(
-      {Key? key,
+      {super.key,
       this.id,
       this.handlerData,
       this.visibleTouchArea,
@@ -26,8 +26,7 @@ class MakeHandler extends StatelessWidget {
       this.rtl = false,
       this.rangeSlider = false,
       this.handlerSide = XliderSide.left,
-      this.touchSize})
-      : super(key: key);
+      this.touchSize});
 
   @override
   Widget build(BuildContext context) {
